@@ -27,7 +27,7 @@ const endpointDiarios = '/?tab=disciplinas&ano-periodo=';
     printRobot();
     const browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
-    const todasDisciplinas = {};11
+    const todasDisciplinas = {};
     let totalDiarios = 0;
     page.on('console', consoleObj => console.log(consoleObj.text()));
     await page.setViewport({ width: 1920, height: 2000 });
