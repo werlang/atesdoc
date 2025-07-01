@@ -1,7 +1,7 @@
 const username = process.env.SUAP_USERNAME || 'user';
 const password = process.env.SUAP_PASSWORD || 'password';
 
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-core');
 const moment = require('moment');
 const _ = require('lodash');
 const colors = require('colors'); //https://www.npmjs.com/package/colors
@@ -24,15 +24,9 @@ const endpointDiarios = '/?tab=disciplinas&ano-periodo=';
 
 
 (async () => {
-    // printRobot();
-    const browser = await puppeteer.launch({
-        headless: true,
-        args: [
-            '--no-sandbox', // Necessário para rodar no Docker
-            '--disable-setuid-sandbox', // Necessário para rodar no Docker
-            '--disable-dev-shm-usage' // Recomendado para evitar problemas de memória em ambientes Docker
-        ],
-        executablePath: '/usr/bin/chromium'
+    // Remote debug: edge://inspect/#devices
+    const browser = await puppeteer.connect({
+        browserURL: 'http://docker.for.mac.localhost:9222'
     });
     const page = await browser.newPage();
     const todasDisciplinas = {};
