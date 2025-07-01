@@ -1,5 +1,5 @@
-const username = 'nomedousuario';
-const password = 'senhadousuario';
+const username = process.env.SUAP_USERNAME || 'user';
+const password = process.env.SUAP_PASSWORD || 'password';
 
 const puppeteer = require('puppeteer');
 const moment = require('moment');
@@ -14,7 +14,7 @@ const professores = [
 ];
 
 // const periodos = [ '2023.2', '2024.1' ];
-const periodos = [ '2023.1', '2023.2', '2024.1', '2024.2', '2025.1' ];
+const periodos = [ '2023.2', '2024.1', '2024.2', '2025.1' ];
 let keysSemestres = [];
 const cursos = [];
 
@@ -24,20 +24,30 @@ const endpointDiarios = '/?tab=disciplinas&ano-periodo=';
 
 
 (async () => {
-    printRobot();
-    const browser = await puppeteer.launch({ headless: true });
+    // printRobot();
+    const browser = await puppeteer.launch({
+        headless: true,
+        args: [
+            '--no-sandbox', // Necessário para rodar no Docker
+            '--disable-setuid-sandbox', // Necessário para rodar no Docker
+            '--disable-dev-shm-usage' // Recomendado para evitar problemas de memória em ambientes Docker
+        ],
+        executablePath: '/usr/bin/chromium'
+    });
     const page = await browser.newPage();
     const todasDisciplinas = {};
     let totalDiarios = 0;
     page.on('console', consoleObj => console.log(consoleObj.text()));
     await page.setViewport({ width: 1920, height: 2000 });
     //vai para a página de login do SUAP
-    console.log(`------------- Acessando o SUAP -----------`);
+    console.log(`------------- Acessando o SUAP como ${username} -----------`);
     await page.goto(suapUrl);
     await page.waitForSelector('#id_username');
     await page.$eval('#id_username', function(el, _username) { el.value = _username }, username);
     await page.$eval('#id_password', function(el, _password) { el.value = _password }, password);
     await page.click('input[type="submit"]');
+
+    await page.waitForNavigation();
 
     await page.waitForSelector('#user-tools');
     console.log("Acesso permitido");
@@ -328,47 +338,4 @@ function printCargaMedia() {
         console.log(`AULAS:  ${somaSemana/qtdDisciplinas}   |    ${somaSemestre/qtdDisciplinas}     |  ${somaCarga/qtdDisciplinas}\n` );
         somaSemana = somaSemestre = somaCarga = qtdDisciplinas = 0;
     }
-}
-
-function printRobot() {
-    console.log(`⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⣤⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣰⡿⠉⠀⠉⢿⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⠀⠀⠀⠀⢀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢷⣄⣀⣶⡿⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⠉⣯⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⠇⠀⢿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣾⠀⠀⠘⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⡤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠼⠯⠤⠤⠤⠿⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⠤⢤⣤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡇⠀⠀⠀⠀⠀⠀⣀⡬⠥⢥⣀⠀⠀⠀⠀⠀⢀⡠⠾⠷⢤⡀⠀⠀⠀⠀⠀⠀⢸⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡀⠀⣾⡇⠀⠀⠀⠀⢀⡾⣋⣄⠀⠈⠉⢶⠀⠀⠀⣴⡟⣁⣀⠀⠀⠙⣆⠀⠀⠀⠀⠀⢸⣅⢀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⠉⠉⢹⡇⠀⠀⠀⠀⢼⣿⣿⣿⣿⣦⡀⢈⡇⠀⠀⣿⣿⣿⣿⣿⡄⠀⣿⠀⠀⠀⠀⠀⢸⡏⠉⢻⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⠀⠀⢸⡇⠀⠀⠀⠀⠈⢿⣿⣿⣿⠿⢀⡾⠁⠀⠀⠘⣿⣿⣿⡿⠁⣠⠏⠀⠀⠀⠀⠀⢸⡇⠀⢸⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⢀⣴⠾⠷⠾⢶⡄⠀⠀⠀⠉⠛⠷⠒⠋⠀⠀⠀⠀⠀⠈⠙⠛⠒⠊⠁⠀⠀⠀⣠⡶⠶⠾⠷⣦⢨⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢼⣾⣿⠀⠀⠀⠀⠙⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⡾⠋⠀⠀⠀⢠⣿⣸⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢈⣿⠀⠀⠀⠀⠀⠀⠛⣦⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⠞⠋⠀⠀⠀⠀⠀⠘⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠰⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⠋⠛⢻⣿⣿⡛⠛⠛⠛⠛⢻⣿⣿⣽⣭⣭⣭⣭⣭⣭⣿⣟⠋⠟⠛⢛⣿⣿⡟⠉⠉⠛⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⡾⠋⠀⣤⣭⣿⣤⣤⣤⣼⣯⣤⣴⣤⣤⣦⣤⣤⣤⣤⣿⣦⣤⣾⣯⣥⣆⠉⠛⢦⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢰⡏⠀⠀⠀⣿⣠⠶⠶⠶⠶⠶⠶⠶⠶⠶⠶⠶⠶⠶⠶⠶⠶⠶⢿⡷⢶⡄⣿⠀⠀⠘⣷⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣾⡇⠀⠀⠀⣿⣼⠀⠀⠀⢲⡆⠀⠀⠀⠀⠀⠀⠀⠀⣤⠄⠀⠀⠀⠀⢬⡇⢸⠀⠀⠀⣿⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣴⠏⢳⣄⠀⢀⣿⣿⠀⠀⢠⡾⡇⠀⡀⠀⠀⠀⠀⠀⢰⣿⠀⠀⠀⠀⠀⣿⣿⣼⠀⢀⡼⠛⣷⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣴⠃⠀⠀⠉⢻⣿⣿⣿⠀⠀⣼⠇⢿⣴⣷⠀⠀⠀⠀⣠⣾⣿⣄⣿⡄⠀⠀⢹⣿⣿⣟⠋⠀⠀⠈⢷⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣸⣇⠀⠀⠀⢰⡟⠉⣿⢻⠷⠶⠿⠀⠸⠏⠘⣦⠀⡿⠒⠛⠃⢸⣿⡟⠿⠿⠷⠿⡟⣿⠹⣆⠀⠀⠀⢈⣷⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⡿⠉⠓⢶⣴⠟⠁⠀⣿⣼⠀⠀⠀⠀⠀⠀⠀⠹⣾⠁⠀⠀⠀⠈⢿⠀⠀⠀⠀⢀⡇⣿⠀⠘⣷⣴⠖⠉⠙⣆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⣤⡀⢠⡾⠃⠀⠀⠀⣿⢹⠀⠀⠀⠀⠀⠀⠀⠀⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢨⣧⣿⠀⠀⠈⢻⣄⠀⣠⣼⣧⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⠀⢀⣴⡏⠀⠀⠈⠻⣿⠁⠀⠀⠀⢀⣿⠘⢿⣿⡿⠛⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠟⢿⣿⠟⠫⣽⠀⠀⠀⠀⣹⡟⠁⠀⠀⠙⢷⡀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⣴⡾⠿⠟⢻⡄⠀⠀⠀⢰⡿⠀⠀⠀⠀⠘⣿⣶⡾⠉⢻⣤⣸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠃⣠⡞⠉⠳⣶⣿⠀⠀⠀⠀⠈⣇⠀⠀⠀⠀⣸⡟⠲⠶⣦⡀⠀⠀⠀
-    ⠀⢀⡾⠋⠀⠀⠀⠈⠳⣦⣤⡴⠟⠀⠀⠀⠀⠀⢈⣿⠈⢷⣤⡾⠏⢹⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠟⠉⢿⣷⡾⠛⣿⠀⠀⠀⠀⠀⠙⢦⣤⣤⠴⠋⠁⠀⠀⠀⠻⣄⠀⠀
-    ⣤⡟⠀⠀⣤⢦⣀⠀⠀⠀⢻⠀⠀⠀⠀⠀⠀⠀⠸⣿⣄⣤⣷⣤⣤⣤⣴⣼⣧⣶⣴⣦⣦⣤⣤⣤⣤⣤⣤⣦⣤⣠⣿⠀⠀⠀⠀⠀⠀⠀⣼⠁⠀⠀⢀⣴⢦⡀⠀⠹⣦⠀
-    ⣿⡀⢠⠞⠁⢀⣽⠇⠀⣠⣾⠃⠀⠀⠀⠀⠀⠀⠀⠀⣾⠋⠀⠀⠀⠀⠀⠀⠈⣿⡀⠀⣾⡇⠀⠀⠀⠀⠀⠀⠀⣻⡄⠀⠀⠀⠀⠀⠀⠀⠻⣄⠀⠀⢿⡀⠀⠻⣄⠀⣿⡃
-    ⠈⣷⠏⠀⣠⡿⠁⠀⣰⠟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⣷⠤⠤⠤⠤⠤⠤⢾⣟⠁⠀⢈⡷⠦⠦⠤⠤⠤⠤⠶⣏⠁⠀⠀⠀⠀⠀⠀⠀⠀⠙⣧⠀⠀⠹⣆⠀⠈⣷⠏⠀
-    ⠀⠀⠀⢴⣯⣤⣤⠞⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣾⡁⠀⠀⠀⠀⠀⠀⠀⣽⠶⠚⢿⡅⠀⠀⠀⠀⠀⠀⠀⣽⠇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠳⢦⣤⣬⣷⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⠟⠛⠛⠛⠛⠛⠛⠻⢯⣄⠀⣤⠟⠛⠛⠛⠛⠛⠛⠻⣧⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠻⣄⣀⣀⣀⣠⣤⣤⣤⣿⠟⠈⠻⣦⣀⣀⣀⣀⣀⣀⣠⡿⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⣴⠯⠿⠿⠭⢯⣉⣉⣉⣿⡀⠠⣾⣏⣀⣀⡠⠶⠶⠿⠿⠷⣤⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣤⠞⠋⠁⠀⠀⠀⠀⠀⠀⠀⠈⠙⢿⠀⠀⣿⠛⠉⠀⠀⠀⠀⠀⠀⠀⠀⠈⠛⠶⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣰⡟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣄⢸⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⣧⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣟⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣸⡷⠀⣿⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣈⣧⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠀⠀⠈⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀`.rainbow);
 }

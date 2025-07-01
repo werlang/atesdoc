@@ -1,0 +1,20 @@
+services:
+    scraper:
+        build: .
+        restart: unless-stopped
+        ports:
+            - 127.0.0.1:3000:3000
+        # env_file:
+        #     - .env
+        cap_add:
+            - SYS_ADMIN
+        volumes:
+            - .:/app
+            - node_modules:/app/node_modules
+        working_dir: /app
+        # command: node app.js
+        env_file:
+            - .env
+        command: tail -f /dev/null #idle container
+volumes:
+    node_modules:
