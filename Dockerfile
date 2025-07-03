@@ -1,11 +1,11 @@
-FROM node:24
+FROM node:24-alpine
 
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true 
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apk add --no-cache \
     chromium \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/cache/apk/*
 
 WORKDIR /app
 COPY package.json .
