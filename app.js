@@ -13,8 +13,8 @@ const professores = [
     },
 ];
 
-// const periodos = [ '2023.2', '2024.1' ];
-const periodos = [ '2023.2', '2024.1', '2024.2', '2025.1' ];
+// sempre requisitar 1 antes e 1 depois
+const periodos = [ '2024.1', '2024.2', '2025.1' ];
 let keysSemestres = [];
 const cursos = [];
 
@@ -26,7 +26,8 @@ const endpointDiarios = '/?tab=disciplinas&ano-periodo=';
 (async () => {
     // Remote debug: edge://inspect/#devices
     const browser = await puppeteer.connect({
-        browserURL: 'http://docker.for.mac.localhost:9222'
+        browserURL: 'http://localhost:9222',
+        // slowMo: 250
     });
     const page = await browser.newPage();
     const todasDisciplinas = {};
@@ -40,8 +41,6 @@ const endpointDiarios = '/?tab=disciplinas&ano-periodo=';
     await page.$eval('#id_username', function(el, _username) { el.value = _username }, username);
     await page.$eval('#id_password', function(el, _password) { el.value = _password }, password);
     await page.click('input[type="submit"]');
-
-    await page.waitForNavigation();
 
     await page.waitForSelector('#user-tools');
     console.log("Acesso permitido");
@@ -102,7 +101,7 @@ const endpointDiarios = '/?tab=disciplinas&ano-periodo=';
                     });
 
                     let componente = links.filter( l => l.href.indexOf('br/edu/componente') > -1 );
-                    let aulas = links.filter( l => l.href.indexOf(`edu/registrar_chamada/${cod}`) > -1);
+                    let aulas = [...new Set(links.filter( l => l.href.indexOf(`edu/registrar_chamada/${cod}`) > -1).map( l => l.href ))]
                     let curso = links.filter( l => l.href.search(/edu\/cursocampus\/\d/) > -1);
                     let turma = links.filter( l => l.href.search(/edu\/turma\/\d/) > -1);
                     let codigoDiario = divs.filter ( d => d.indexOf("Código") > -1)[0].split("\n")[1];
@@ -115,7 +114,7 @@ const endpointDiarios = '/?tab=disciplinas&ano-periodo=';
                             return div.dataset.progress;
                         });
                     });
-                    console.log(chCumprida);
+                    // console.log(chCumprida);
                     if (chCumprida[0] !== undefined) {
                         chCumprida = chCumprida[0]
                             .replace('p', '')
@@ -127,8 +126,8 @@ const endpointDiarios = '/?tab=disciplinas&ano-periodo=';
                     let todasAulas = [];
                     //pode ter registro de aulas na primeira e segunda etapa
                     for (let i = 0; i < aulas.length; i++) {
-                        console.log(`Acessando registros de ${aulas[i].href}`.yellow);
-                        await page.goto(aulas[i].href);
+                        console.log(`Acessando registros de ${aulas[i]}`.yellow);
+                        await page.goto(aulas[i]);
                         await page.content();
                         
                         let todosRegistros = await page.evaluate((nomeProfessor) => {
@@ -187,11 +186,13 @@ const endpointDiarios = '/?tab=disciplinas&ano-periodo=';
 
     renderizaResultado(todasDisciplinas, totalDiarios);
     renderizaPorSemestre(todasDisciplinas);
+    // console.log(todasDisciplinas);
     
-    console.log("Fechando browser. Finalizando conexão.");
-    await browser.close();
+    // console.log("Fechando browser. Finalizando conexão.");
+    // await browser.close();
     console.log("END SUAP PROGRAM");
     console.log("\n\n");
+    process.exit(0);
 })();
 
 function calculaAulasPorSemestre(registros) {
@@ -244,6 +245,8 @@ let somaSemestre = 0;
 let somaCarga = 0;
 let qtdDisciplinas = 0;
 
+const reportJSON = {};
+
 function renderizaPorSemestre(todasDisciplinas) {
     keysSemestres = keysSemestres.sort();
     todasDisciplinas = _.sortBy(todasDisciplinas, 'nomeDisciplina');
@@ -253,11 +256,20 @@ function renderizaPorSemestre(todasDisciplinas) {
                     ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿ ${semestre} ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
                     ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿\n`.white);
 
+        reportJSON[semestre] = [];
+
         for (const curso of cursos) {
             let printCurso = true;
             let componenteAnterior = ""; //para guardar o componente que está sendo impresso, visando não imprimir duas vezes
             //para o calculo dos totais
-            
+
+            const componentesJSON = [];
+            const cursoJSON = {
+                nome: curso,
+                componentes: componentesJSON
+            }
+            reportJSON[semestre].push(cursoJSON);
+
             for (const diarioKey in todasDisciplinas) {
                 if (Object.hasOwnProperty.call(todasDisciplinas, diarioKey)) {
                     const disciplina = todasDisciplinas[diarioKey];
@@ -274,6 +286,13 @@ function renderizaPorSemestre(todasDisciplinas) {
                             console.log(`⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿ COMPONENTE: ${disciplina.componente} ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿`.cyan);
                             componenteAnterior = disciplina.componente
                             console.log("\n");
+
+                            const componenteJSON = {
+                                componente: disciplina.componente,
+                                turmas: [],
+                            }
+
+                            componentesJSON.push(componenteJSON);
                         }
                         console.log(`TURMA: ${disciplina.turma} - Matriculados: ${disciplina.matriculados} - DIÁRIO: ${diarioKey} - ${disciplina.url}`);
                         // console.log(`AULAS: ${disciplina.aulasSemestre[semestre]}`);
@@ -282,12 +301,32 @@ function renderizaPorSemestre(todasDisciplinas) {
                         console.log(`AULAS:  ${objAulas.semanal}   |    ${objAulas.semestral}     |  ${objAulas.carga}` );
                         
                         addDisciplina( objAulas.semanal, objAulas.semestral, objAulas.carga );
+
+                        const turmaJSON = {
+                            nome: disciplina.turma,
+                            matriculados: disciplina.matriculados,
+                            diario: diarioKey,
+                            url: disciplina.url,
+                            aulas: objAulas,
+                        }
+
+                        const selectedComponent = componentesJSON.find(c => c.componente === disciplina.componente);
+
+                        selectedComponent.total = {
+                            semanal: (somaSemana / qtdDisciplinas).toFixed(2),
+                            semestral: (somaSemestre / qtdDisciplinas).toFixed(2),
+                            carga: (somaCarga / qtdDisciplinas).toFixed(2)
+                        }
+
+                        selectedComponent.turmas.push(turmaJSON);
                     }
                 }
             }
         }
         
     }
+
+    console.log(JSON.stringify(reportJSON, null, 2));
 }
 
 function addKeySemestre(keySemestre) {
