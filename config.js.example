@@ -1,11 +1,23 @@
 // O id do professor é o número que aparece no link do perfil no SUAP:
 // EX: https://suap.ifsul.edu.br/edu/professor/1335/
+// semestres: [ '2023.2', '2024.1', '2024.2', '2025.1' ] 
+//   - serão gerados relatórios para esses semestres, para todos os professores da lista, salvo as exceções
+// professores: [ ...number ]
+//   - lista de IDs dos professores para os quais os relatórios serão gerados
+//   - os IDs podem ser números ou objetos. Caso objeto, podem ter as seguintes propriedades
+//     - id: ID do professor
+//     - semestres: lista de semestres para os quais o relatório deve ser gerado (ignora o caso geral)
+//     - exclude: lista de componentes a serem excluídos, conforme relatório
 
 module.exports = {
     semestres: [ '2023.2', '2024.1', '2024.2', '2025.1' ], // Aplica para todos
     professores: [
         748, // Felipe Thomas
         1335, // Pablo Werlang
-        { id: 123, semestres: [ '2024.1', '2024.2' ] } // Caso específico
+        { id: 123, semestres: [ '2024.1', '2024.2' ] }, // Caso específico
+        { id: 456, exclude: [
+            'TEC.1234 - Componente Não Considerado [100.00 h/150.00 Aulas]',
+            'TEC.5678 - Outro Componente [200.00 h/300.00 Aulas]'
+        ] },
     ]
 };

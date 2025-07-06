@@ -42,12 +42,14 @@ const endpointDiarios = '/?tab=disciplinas&ano-periodo=';
     await page.waitForSelector('#user-tools');
     console.log("Acesso permitido");
 
-    for (const id of config.professores) {
+    for (const professorInfo of config.professores) {
         // accept each professor id as number or { id, semestres }
-        const professor = {
-            id: typeof id === 'number' ? id : id.id,
-            semestres: typeof id === 'number' ? config.semestres : id.semestres,
-        };
+        let professor = {};
+        professor.id = typeof professorInfo === 'number' ? professorInfo : professorInfo.id;
+        if (!professor.id) continue;
+        professor.semestres = professorInfo.semestres || config.semestres;
+        professor.exclude = professorInfo.exclude || [];
+
         let diarios = {};
         keysSemestres = [];
         cursos = [];
@@ -213,7 +215,12 @@ const endpointDiarios = '/?tab=disciplinas&ano-periodo=';
 
                     todasAulas = todasAulas.concat(todosRegistros);
                 }
-                
+
+                if (professor.exclude.includes(componente[0].innerText)) {
+                    console.log(`Componente ${componente[0].innerText} excluído por ${professor.nome}`);
+                    continue;
+                }
+
                 todasDisciplinas[codigoDiario] = {
                     matriculados    : qtdMatriculados,
                     curso           : curso[0].innerText,
