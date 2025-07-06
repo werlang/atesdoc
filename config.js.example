@@ -1,0 +1,11 @@
+// O id do professor é o número que aparece no link do perfil no SUAP:
+// EX: https://suap.ifsul.edu.br/edu/professor/1335/
+
+module.exports = {
+    semestres: [ '2023.2', '2024.1', '2024.2', '2025.1' ], // Aplica para todos
+    professores: [
+        748, // Felipe Thomas
+        1335, // Pablo Werlang
+        { id: 123, semestres: [ '2024.1', '2024.2' ] } // Caso específico
+    ]
+};

@@ -5,18 +5,15 @@ const puppeteer = require('puppeteer-core');
 const moment = require('moment');
 const _ = require('lodash');
 const colors = require('colors'); //https://www.npmjs.com/package/colors
+const buildDocument = require('./document-builder.js');
+const fs = require('fs');
+const config = require('./config.js');
+const path = require('path');
 
-const professores = [
-    {
-        nome: "Vanius Zapalowski",
-        id: 558
-    },
-];
+const autoFetchPreviousAndNext = true;
 
-// sempre requisitar 1 antes e 1 depois
-const periodos = [ '2024.1', '2024.2', '2025.1' ];
 let keysSemestres = [];
-const cursos = [];
+let cursos = [];
 
 const suapUrl = 'https://suap.ifsul.edu.br/accounts/login/';
 const urlProfessor = 'https://suap.ifsul.edu.br/edu/professor/';
@@ -30,7 +27,7 @@ const endpointDiarios = '/?tab=disciplinas&ano-periodo=';
         // slowMo: 250
     });
     const page = await browser.newPage();
-    const todasDisciplinas = {};
+    let todasDisciplinas = {};
     let totalDiarios = 0;
     page.on('console', consoleObj => console.log(consoleObj.text()));
     await page.setViewport({ width: 1920, height: 2000 });
@@ -44,24 +41,81 @@ const endpointDiarios = '/?tab=disciplinas&ano-periodo=';
 
     await page.waitForSelector('#user-tools');
     console.log("Acesso permitido");
-    
-    for (const professor of professores) {
-        console.log(`PROFESSOR: ${professor.nome}`);
+
+    for (const id of config.professores) {
+        // accept each professor id as number or { id, semestres }
+        const professor = {
+            id: typeof id === 'number' ? id : id.id,
+            semestres: typeof id === 'number' ? config.semestres : id.semestres,
+        };
         let diarios = {};
+        keysSemestres = [];
+        cursos = [];
+        totalDiarios = 0;
+        todasDisciplinas = {};
+    
+        const buscaPeriodos = (() => {
+            if (!autoFetchPreviousAndNext) return professor.semestres;
+    
+            const newPeriodos = [];
+            const first = professor.semestres[0];
+            const last = professor.semestres[professor.semestres.length - 1];
+            if (first.split('.')[1] === '1') {
+                newPeriodos.push(parseInt(first.split('.')[0]) - 1 + '.2');
+            }
+            else {
+                newPeriodos.push(first.split('.')[0] + '.1');
+            }
+    
+            newPeriodos.push(...professor.semestres);
+    
+            if (last.split('.')[1] === '1') {
+                newPeriodos.push(last.split('.')[0] + '.2');
+            }
+            else {
+                newPeriodos.push(parseInt(last.split('.')[0]) + 1 + '.1');
+            }
+    
+            return newPeriodos;
+        })();
+    
         //para cada período letivo vai acessando os diários e armazena no array os links
-        for (const periodoLetivo of periodos) {
+        for (const periodoLetivo of buscaPeriodos) {
             const url = urlProfessor + professor.id + endpointDiarios + periodoLetivo;
+        
             console.log(`ACESSANDO URL ${url}`);
             await page.goto(url);
             const content = await page.content();
             // await page.waitForSelector('#select_ano_periodo');
-            
-            let links = await page.evaluate(() => {
-                let anchors = document.body.querySelectorAll('a');
-                return [].map.call(anchors, a => a.href);
+    
+            let [links, profData] = await page.evaluate(() => {
+                const text = document.body.querySelector('.title-container h2').innerText;
+                const regex = /Professor\(a\): (.+) \((\d+)\)/;
+                const matches = text.match(regex);
+                let profData = {};
+                if (matches) {
+                    profData = { nome: matches[1], siape: matches[2] };
+                }
+
+                let anchors = document.body.querySelectorAll('table a');
+                let links = Array.from(anchors).map(a => a.href);
+
+                return [links, profData];
             });
+            // console.log(links);
+
+            if (!professor.nome) {
+                professor.nome = profData.nome;
+                professor.siape = profData.siape;
+                console.log(`PROFESSOR: ${professor.nome}`);
+                console.log(`SIAPE: ${professor.siape}`);
+            }
+
+            // verifica se eu sou o professor
+            let parsed = links.find(l => l.includes('br/edu/meu_diario')) ?
+                links.filter( l => l.includes('br/edu/meu_diario')).map(l => l.replace('br/edu/meu_diario', 'br/edu/diario').replace('/0/', '/')) :
+                links.filter( l => l.includes('br/edu/diario'));
             
-            let parsed = links.filter( l => l.indexOf('br/edu/diario') > -1);
             const keyPeriodo = periodoLetivo.replace(".", "_");
             diarios[keyPeriodo] = parsed;
             totalDiarios += diarios[keyPeriodo].length;
@@ -71,122 +125,131 @@ const endpointDiarios = '/?tab=disciplinas&ano-periodo=';
         
         let cont = 1;
         for (const key in diarios) {
-            if (Object.hasOwnProperty.call(diarios, key)) {
-                const diariosUrl = diarios[key];
-                for (const diarioUrl of diariosUrl) {
-                    // if (cont > 8) continue; //Descomentar em ambiente de teste
-                    
-                    console.log(`Acessando diario ${cont++} de ${totalDiarios} ${diarioUrl}`.cyan);
-                    await page.goto(diarioUrl);
+            if (!diarios[key]) continue;
+            
+            const diariosUrl = diarios[key];
+            for (const diarioUrl of diariosUrl) {
+                // if (cont > 8) continue; //Descomentar em ambiente de teste
+                
+                console.log(`Acessando diario ${cont++} de ${totalDiarios} ${diarioUrl}`.cyan);
+                await page.goto(diarioUrl);
+                await page.content();
+                //foi necessario extrair o codigo do diário para montar o link da url registrar_chamada, pois estava 
+                //sempre pegando o primeiro diário, ele mantia o primeiro diário em todas as outras chamadas. :/
+                let cod = diarioUrl.replace("https://suap.ifsul.edu.br/edu/diario/", "").replace("/", "");
+                
+                let links = await page.evaluate(() => {
+                    let anchors = document.body.querySelectorAll('a');
+                    //por algum motivo estava mantendo o link do primeiro diário no content da página
+                    //em todas as consultas.
+                    //converte para array
+                    return Array.from(anchors).map(a => ({ "href": a.href, "innerText": a.innerText }));
+                });
+                //as divs com conteúdos específicos estão definidas com a classe list-item
+                let divs = await page.evaluate(() => {
+                    let listItens = document.body.querySelectorAll('.list-item');
+                    return Array.from(listItens).map(div => div.innerText);
+                });
+
+                let componente = links.filter( l => l.href.indexOf('br/edu/componente') > -1 );
+                let aulas = [...new Set(links.filter( l => l.href.indexOf(`edu/registrar_chamada/${cod}`) > -1).map( l => l.href ))]
+                let curso = links.filter( l => l.href.search(/edu\/cursocampus\/\d/) > -1);
+                let turma = links.filter( l => l.href.search(/edu\/turma\/\d/) > -1);
+                let codigoDiario = divs.filter( d => d.indexOf("Código") > -1)[0].split("\n")[1];
+                let qtdMatriculados = divs.filter( d => d.indexOf("Matriculados") > -1)[0].split("\n")[1];
+
+                //as divs com conteúdos específicos estão definidas com a classe list-item
+                let chCumprida = await page.evaluate(() => {
+                    let listItens = document.body.querySelectorAll('.progress');
+                    return Array.from(listItens).map(div => div.dataset.progress);
+                });
+                // console.log(chCumprida);
+                if (chCumprida[0] !== undefined) {
+                    chCumprida = chCumprida[0]
+                        .replace('p', '')
+                        .replace('%', '');
+
+                    console.log(`CARGA CUMPRIDA: ${chCumprida}`.brightBlue);
+                }
+                
+                let todasAulas = [];
+                //pode ter registro de aulas na primeira e segunda etapa
+                for (let i = 0; i < aulas.length; i++) {
+                    console.log(`Acessando registros de ${aulas[i]}`.yellow);
+                    await page.goto(aulas[i]);
                     await page.content();
-                    //foi necessario extrair o codigo do diário para montar o link da url registrar_chamada, pois estava 
-                    //sempre pegando o primeiro diário, ele mantia o primeiro diário em todas as outras chamadas. :/
-                    let cod = diarioUrl.replace("https://suap.ifsul.edu.br/edu/diario/", "").replace("/", "");
                     
-                    let links = await page.evaluate(() => {
-                        let anchors = document.body.querySelectorAll('a');
-                        //por algum motivo estava mantendo o link do primeiro diário no content da página
-                        //em todas as consultas.
-                        //converte para array
-                        return [].map.call(anchors, function(a) {
-                            return {"href" : a.href, "innerText" : a.innerText}
-                        });
-                    });
-                    //as divs com conteúdos específicos estão definidas com a classe list-item
-                    let divs = await page.evaluate(() => {
-                        let listItens = document.body.querySelectorAll('.list-item');
-                        return [].map.call(listItens, function(div) {
-                            return div.innerText;
-                        });
-                    });
-
-                    let componente = links.filter( l => l.href.indexOf('br/edu/componente') > -1 );
-                    let aulas = [...new Set(links.filter( l => l.href.indexOf(`edu/registrar_chamada/${cod}`) > -1).map( l => l.href ))]
-                    let curso = links.filter( l => l.href.search(/edu\/cursocampus\/\d/) > -1);
-                    let turma = links.filter( l => l.href.search(/edu\/turma\/\d/) > -1);
-                    let codigoDiario = divs.filter ( d => d.indexOf("Código") > -1)[0].split("\n")[1];
-                    let qtdMatriculados = divs.filter ( d => d.indexOf("Matriculados") > -1)[0].split("\n")[1];
-
-                    //as divs com conteúdos específicos estão definidas com a classe list-item
-                    let chCumprida = await page.evaluate(() => {
-                        let listItens = document.body.querySelectorAll('.progress');
-                        return [].map.call(listItens, function(div) {
-                            return div.dataset.progress;
-                        });
-                    });
-                    // console.log(chCumprida);
-                    if (chCumprida[0] !== undefined) {
-                        chCumprida = chCumprida[0]
-                            .replace('p', '')
-                            .replace('%', '');
-    
-                        console.log(`CARGA CUMPRIDA: ${chCumprida}`.brightBlue);
-                    }
-                    
-                    let todasAulas = [];
-                    //pode ter registro de aulas na primeira e segunda etapa
-                    for (let i = 0; i < aulas.length; i++) {
-                        console.log(`Acessando registros de ${aulas[i]}`.yellow);
-                        await page.goto(aulas[i]);
-                        await page.content();
-                        
-                        let todosRegistros = await page.evaluate((nomeProfessor) => {
-                            let trAulas = document.body.querySelectorAll('#table_registro_aula tr');
-                            let disciplinaDividida = false;
-                            let nomeArray = nomeProfessor.split(" ");
-                            let primeiroUltimoNome = nomeArray[0] + " " + nomeArray[ nomeArray.length -1 ]; //concatena o primeiro e o ultimo nome do professor
-                            let primeiroSegundoNome = nomeArray[0] + " " + nomeArray[ 1 ]; //concatena o primeiro e o segundo nome - Caso do Matheus Senna
-                            //a tabela das disciplinas pode ter alguns formatos diferentes, com as posições dos dados no index da coluna sendo dinâmico
-                            let offset;
-                            //se tiver a coluna professor no header, é disciplina dividida
-                            if (trAulas.length > 0) {
-                                offset = trAulas[0].cells[1].innerText.toLowerCase().trim() == "quantidade" ? 1 : 0;
-                                disciplinaDividida = trAulas[0].cells[4 - offset].innerText == "Professor";
+                    let todosRegistros = await page.evaluate((nomeProfessor) => {
+                        let trAulas = document.body.querySelectorAll('#table_registro_aula tr');
+                        let disciplinaDividida = false;
+                        let nomeArray = nomeProfessor.split(" ");
+                        let primeiroUltimoNome = nomeArray[0] + " " + nomeArray[ nomeArray.length -1 ]; //concatena o primeiro e o ultimo nome do professor
+                        let primeiroSegundoNome = nomeArray[0] + " " + nomeArray[ 1 ]; //concatena o primeiro e o segundo nome - Caso do Matheus Senna
+                        //a tabela das disciplinas pode ter alguns formatos diferentes, com as posições dos dados no index da coluna sendo dinâmico
+                        let offset;
+                        //se tiver a coluna professor no header, é disciplina dividida
+                        if (trAulas.length > 0) {
+                            offset = trAulas[0].cells[1].innerText.toLowerCase().trim() == "quantidade" ? 1 : 0;
+                            disciplinaDividida = trAulas[0].cells[4 - offset].innerText == "Professor";
+                        }
+                        return Array.from(trAulas).map(tr => {
+                            let quantidade = tr.cells[2 - offset].innerText;
+                            //nas disciplinas divididas qando o nome do professor não estiver na linha da tabela, zera a qtd de aulas
+                            let nomeProfessorSuap = tr.cells[4 - offset].innerText.toLowerCase().trim();
+                            if (disciplinaDividida 
+                                && nomeProfessorSuap != nomeProfessor.toLowerCase() 
+                                && nomeProfessorSuap.indexOf(primeiroUltimoNome.toLocaleLowerCase()) == -1 
+                                && nomeProfessorSuap.indexOf(primeiroSegundoNome.toLocaleLowerCase()) == -1 ) 
+                            {
+                                quantidade = "0 aulas";
                             }
-                            return [].map.call(trAulas, function(tr) {
-                                let quantidade = tr.cells[2 - offset].innerText;
-                                //nas disciplinas divididas qando o nome do professor não estiver na linha da tabela, zera a qtd de aulas
-                                let nomeProfessorSuap = tr.cells[4 - offset].innerText.toLowerCase().trim();
-                                if (disciplinaDividida 
-                                    && nomeProfessorSuap != nomeProfessor.toLowerCase() 
-                                    && nomeProfessorSuap.indexOf(primeiroUltimoNome.toLocaleLowerCase()) == -1 
-                                    && nomeProfessorSuap.indexOf(primeiroSegundoNome.toLocaleLowerCase()) == -1 ) 
-                                {
-                                    quantidade = "0 aulas";
-                                }
-                                return { "data" : tr.cells[3 - offset].innerText, "quantidade" : quantidade };
-                                
-                            });
-                        }, professor.nome);
+                            return {
+                                data: tr.cells[3 - offset].innerText,
+                                quantidade,
+                            };
 
-                        todasAulas = todasAulas.concat(todosRegistros);
-                    }
-                    
-                    todasDisciplinas[codigoDiario] = {
-                        matriculados    : qtdMatriculados,
-                        curso           : curso[0].innerText,
-                        turma           : turma[0].innerText,
-                        componente      : componente[0].innerText,
-                        nomeDisciplina  : componente[0].innerText.split(" - ")[1],
-                        aulas           : aulas[0],
-                        registros       : todasAulas,
-                        aulasSemestre   : calculaAulasPorSemestre(todasAulas),
-                        url             : diarioUrl,
-                        cargaCumprida   : parseInt(chCumprida)
-                    }
-                    
-                    addCurso(todasDisciplinas[codigoDiario].curso);
-                    console.log(todasDisciplinas[codigoDiario].componente);
-                    console.log(`<SCRAPED ${codigoDiario}>`.white);
-                    
-                }        
-            }
+                        });
+                    }, professor.nome);
+
+                    todasAulas = todasAulas.concat(todosRegistros);
+                }
+                
+                todasDisciplinas[codigoDiario] = {
+                    matriculados    : qtdMatriculados,
+                    curso           : curso[0].innerText,
+                    turma           : turma[0].innerText,
+                    componente      : componente[0].innerText,
+                    nomeDisciplina  : componente[0].innerText.split(" - ")[1],
+                    aulas           : aulas[0],
+                    registros       : todasAulas,
+                    aulasSemestre   : calculaAulasPorSemestre(todasAulas),
+                    url             : diarioUrl,
+                    cargaCumprida   : parseInt(chCumprida)
+                }
+                
+                addCurso(todasDisciplinas[codigoDiario].curso);
+                console.log(todasDisciplinas[codigoDiario].componente);
+                console.log(`<SCRAPED ${codigoDiario}>`.white);
+                
+            }        
         }  
-    } 
-
-    renderizaResultado(todasDisciplinas, totalDiarios);
-    renderizaPorSemestre(todasDisciplinas);
-    // console.log(todasDisciplinas);
+    
+        renderizaResultado(todasDisciplinas, totalDiarios);
+        renderizaPorSemestre(professor, todasDisciplinas);
+    
+        // console.log(JSON.stringify(reportJSON, null, 2));
+        console.log(`Gerando documento para ${professor.nome}`.brightBlue);
+        const documento = buildDocument(reportJSON);
+        fs.mkdirSync(path.join(__dirname, 'document'), { recursive: true });
+        fs.writeFileSync(path.join(__dirname, 'document', `${professor.id}.html`), `<html>
+            <head>
+                <title>Atestado de Docência: ${professor.nome}</title>
+            </head>
+            <body>
+                ${documento}
+            </body>
+        </html>`);
+    }
     
     // console.log("Fechando browser. Finalizando conexão.");
     // await browser.close();
@@ -247,7 +310,11 @@ let qtdDisciplinas = 0;
 
 const reportJSON = {};
 
-function renderizaPorSemestre(todasDisciplinas) {
+function renderizaPorSemestre(professor, todasDisciplinas) {
+    reportJSON.nome = professor.nome;
+    reportJSON.siape = professor.siape;
+    reportJSON.periodos = {};
+
     keysSemestres = keysSemestres.sort();
     todasDisciplinas = _.sortBy(todasDisciplinas, 'nomeDisciplina');
     for (const semestre of keysSemestres) {
@@ -256,7 +323,9 @@ function renderizaPorSemestre(todasDisciplinas) {
                     ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿ ${semestre} ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
                     ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿\n`.white);
 
-        reportJSON[semestre] = [];
+        reportJSON.periodos[semestre] = {
+            cursos: [],
+        };
 
         for (const curso of cursos) {
             let printCurso = true;
@@ -268,7 +337,7 @@ function renderizaPorSemestre(todasDisciplinas) {
                 nome: curso,
                 componentes: componentesJSON
             }
-            reportJSON[semestre].push(cursoJSON);
+            reportJSON.periodos[semestre].cursos.push(cursoJSON);
 
             for (const diarioKey in todasDisciplinas) {
                 if (Object.hasOwnProperty.call(todasDisciplinas, diarioKey)) {
@@ -323,10 +392,23 @@ function renderizaPorSemestre(todasDisciplinas) {
                 }
             }
         }
+
+        reportJSON.periodos[semestre].resumo = {
+            turmas: reportJSON.periodos[semestre].cursos.map(curso => curso.componentes.map(componente => componente.turmas.length).reduce((a, b) => a + b, 0)).reduce((a, b) => a + b, 0),
+            componentes: reportJSON.periodos[semestre].cursos.map(curso => curso.componentes.length).reduce((a, b) => a + b, 0),
+            aulasSemanais: reportJSON.periodos[semestre].cursos.map(curso => curso.componentes.map(componente => componente.turmas.length * componente.total.semanal).reduce((a, b) => a + b, 0)).reduce((a, b) => a + b, 0).toFixed(2),
+            cargaSemestral: reportJSON.periodos[semestre].cursos.map(curso => curso.componentes.map(componente => componente.turmas.length * componente.total.carga).reduce((a, b) => a + b, 0)).reduce((a, b) => a + b, 0).toFixed(2),
+        };
+
+        Object.keys(reportJSON.periodos).forEach(periodo => {
+            const periodosRequisitados = professor.semestres.map(p => p.replace('.', '_'));
+            if (!periodosRequisitados.includes(periodo)) {
+                delete reportJSON.periodos[periodo];
+            }
+        });
         
     }
 
-    console.log(JSON.stringify(reportJSON, null, 2));
 }
 
 function addKeySemestre(keySemestre) {
