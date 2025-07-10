@@ -248,14 +248,7 @@ const endpointDiarios = '/?tab=disciplinas&ano-periodo=';
         console.log(`Gerando documento para ${professor.nome}`.brightBlue);
         const documento = buildDocument(reportJSON);
         fs.mkdirSync(path.join(__dirname, 'document'), { recursive: true });
-        fs.writeFileSync(path.join(__dirname, 'document', `${professor.id}.html`), `<html>
-            <head>
-                <title>Atestado de Docência: ${professor.nome}</title>
-            </head>
-            <body>
-                ${documento}
-            </body>
-        </html>`);
+        fs.writeFileSync(path.join(__dirname, 'document', `${professor.id}.html`), `<html><body style="padding: 20px 75px">${documento}</body></html>`);
     }
     
     // console.log("Fechando browser. Finalizando conexão.");
