@@ -7,7 +7,9 @@ const _ = require('lodash');
 const colors = require('colors'); //https://www.npmjs.com/package/colors
 const buildDocument = require('./document-builder.js');
 const fs = require('fs');
-const config = require('./config.js');
+// Support both regular config and temporary config from web interface
+const configPath = process.env.CONFIG_FILE || './config.js';
+const config = require(configPath);
 const path = require('path');
 
 const autoFetchPreviousAndNext = true;
@@ -157,6 +159,12 @@ const endpointDiarios = '/?tab=disciplinas&ano-periodo=';
                 let aulas = [...new Set(links.filter( l => l.href.indexOf(`edu/registrar_chamada/${cod}`) > -1).map( l => l.href ))]
                 let curso = links.filter( l => l.href.search(/edu\/cursocampus\/\d/) > -1);
                 let turma = links.filter( l => l.href.search(/edu\/turma\/\d/) > -1);
+
+                if (!divs.length) {
+                    console.log(`Não foi possível encontrar as informações do diário. Verifique se o diário está correto ou se as credenciais estão corretas: `.red + diarioUrl.green);
+                    continue;
+                }
+
                 let codigoDiario = divs.filter( d => d.indexOf("Código") > -1)[0].split("\n")[1];
                 let qtdMatriculados = divs.filter( d => d.indexOf("Matriculados") > -1)[0].split("\n")[1];
 

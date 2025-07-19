@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Atestado de Docência - IFSUL</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1976d2">
+    
+    <!-- Material Design Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="header-title">
+                    <span class="material-icons">school</span>
+                    <h1>Gerador de Atestado de Docência</h1>
+                </div>
+                <div class="header-subtitle">
+                    Instituto Federal Sul-Rio-Grandense - Campus Charqueadas
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-wrapper">
+                <!-- Progress Indicator -->
+                <div class="progress-indicator">
+                    <div class="step active" data-step="1">
+                        <span class="step-number">1</span>
+                        <span class="step-label">Dados do Professor</span>
+                    </div>
+                    <div class="step" data-step="2">
+                        <span class="step-number">2</span>
+                        <span class="step-label">Configuração</span>
+                    </div>
+                    <div class="step" data-step="3">
+                        <span class="step-number">3</span>
+                        <span class="step-label">Revisão</span>
+                    </div>
+                </div>
+
+                <!-- Step 1: Professor Data -->
+                <div class="step-content active" id="step-1">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Dados do Professor</h2>
+                            <p>Insira as informações básicas do professor</p>
+                        </div>
+                        <div class="card-content">
+                            <div class="form-group">
+                                <label for="professor-id">ID do Professor</label>
+                                <input type="number" id="professor-id" placeholder="Ex: 1641" required>
+                                <small>Número que aparece no link do perfil no SUAP</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="professor-name">Nome do Professor (opcional)</label>
+                                <input type="text" id="professor-name" placeholder="Ex: João Silva">
+                                <small>Se não informado, será obtido automaticamente do SUAP</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="professor-siape">SIAPE (opcional)</label>
+                                <input type="text" id="professor-siape" placeholder="Ex: 1234567">
+                                <small>Se não informado, será obtido automaticamente do SUAP</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Configuration -->
+                <div class="step-content" id="step-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Seleção de Semestres</h2>
+                            <p>Escolha os semestres para o atestado</p>
+                        </div>
+                        <div class="card-content">
+                            <div class="semesters-grid" id="semesters-grid">
+                                <!-- Semesters will be generated dynamically -->
+                            </div>
+                            <div class="semester-actions">
+                                <button type="button" class="btn-secondary" id="add-semester">
+                                    <span class="material-icons">add</span>
+                                    Adicionar Semestre
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" id="disciplines-card" style="display: none;">
+                        <div class="card-header">
+                            <h2>Disciplinas Encontradas</h2>
+                            <p>Selecione as disciplinas que devem aparecer no atestado</p>
+                        </div>
+                        <div class="card-content">
+                            <div class="disciplines-list" id="disciplines-list">
+                                <!-- Disciplines will be loaded after scraping -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" id="exclusions-card" style="display: none;">
+                        <div class="card-header">
+                            <h2>Exclusões</h2>
+                            <p>Configure exclusões específicas</p>
+                        </div>
+                        <div class="card-content">
+                            <div class="form-group">
+                                <label>Disciplinas a Excluir</label>
+                                <div class="exclusions-list" id="exclusions-list">
+                                    <!-- Exclusions will be added dynamically -->
+                                </div>
+                                <button type="button" class="btn-secondary" id="add-exclusion">
+                                    <span class="material-icons">remove_circle</span>
+                                    Adicionar Exclusão
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Review -->
+                <div class="step-content" id="step-3">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Revisão Final</h2>
+                            <p>Verifique as configurações antes de gerar o documento</p>
+                        </div>
+                        <div class="card-content">
+                            <div class="review-section">
+                                <h3>Professor</h3>
+                                <div class="review-item">
+                                    <span class="label">ID:</span>
+                                    <span class="value" id="review-professor-id">-</span>
+                                </div>
+                                <div class="review-item">
+                                    <span class="label">Nome:</span>
+                                    <span class="value" id="review-professor-name">-</span>
+                                </div>
+                                <div class="review-item">
+                                    <span class="label">SIAPE:</span>
+                                    <span class="value" id="review-professor-siape">-</span>
+                                </div>
+                            </div>
+
+                            <div class="review-section">
+                                <h3>Semestres Selecionados</h3>
+                                <div class="review-semesters" id="review-semesters">
+                                    <!-- Selected semesters will be shown here -->
+                                </div>
+                            </div>
+
+                            <div class="review-section" id="review-exclusions-section" style="display: none;">
+                                <h3>Exclusões</h3>
+                                <div class="review-exclusions" id="review-exclusions">
+                                    <!-- Exclusions will be shown here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation -->
+                <div class="navigation">
+                    <button type="button" class="btn-secondary" id="prev-btn" style="display: none;">
+                        <span class="material-icons">arrow_back</span>
+                        Anterior
+                    </button>
+                    <button type="button" class="btn-primary" id="next-btn">
+                        Próximo
+                        <span class="material-icons">arrow_forward</span>
+                    </button>
+                    <button type="button" class="btn-primary" id="generate-btn" style="display: none;">
+                        <span class="material-icons">description</span>
+                        Gerar Atestado
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loading-overlay">
+            <div class="loading-content">
+                <div class="spinner"></div>
+                <h3>Processando...</h3>
+                <p id="loading-message">Conectando ao SUAP...</p>
+            </div>
+        </div>
+
+        <!-- Success Modal -->
+        <div class="modal" id="success-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span class="material-icons success-icon">check_circle</span>
+                    <h3>Atestado Gerado com Sucesso!</h3>
+                </div>
+                <div class="modal-body">
+                    <p>O atestado de docência foi gerado e está disponível para download.</p>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" id="close-modal">Fechar</button>
+                    <button type="button" class="btn-primary" id="download-btn">
+                        <span class="material-icons">download</span>
+                        Download
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error Modal -->
+        <div class="modal" id="error-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span class="material-icons error-icon">error</span>
+                    <h3>Erro ao Gerar Atestado</h3>
+                </div>
+                <div class="modal-body">
+                    <p id="error-message">Ocorreu um erro durante o processamento. Tente novamente.</p>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-primary" id="close-error-modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

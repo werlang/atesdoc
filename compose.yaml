@@ -1,4 +1,18 @@
 services:
+    web:
+        build:
+            context: .
+            dockerfile: Dockerfile-node
+        restart: unless-stopped
+        volumes:
+            - .:/app
+            - node_modules:/app/node_modules
+        working_dir: /app
+        env_file:
+            - .env
+        ports:
+            - 3000:3000
+        command: npm run server
     chrome:
         image: 'zenika/alpine-chrome:latest'
         entrypoint: ["chromium-browser", "--headless", "--disable-gpu", "--disable-software-rasterizer", "--disable-dev-shm-usage", "--no-sandbox", "--remote-debugging-address=0.0.0.0", "--remote-debugging-port=9222"]
