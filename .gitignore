@@ -1,4 +1,13 @@
-.env
-config.js
-document/*
+# Scraper service
+
+scraper/config.js
+scraper/document/*
+
+# Web service
+
+
+
+# Root files
+
 .DS_Store
+.env

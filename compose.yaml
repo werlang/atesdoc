@@ -1,12 +1,11 @@
 services:
     web:
         build:
-            context: .
-            dockerfile: Dockerfile-node
+            context: ./web
         restart: unless-stopped
         volumes:
-            - .:/app
-            - node_modules:/app/node_modules
+            - ./web:/app
+            - node_modules_web:/app/node_modules
         working_dir: /app
         env_file:
             - .env
@@ -19,11 +18,11 @@ services:
         ports:
             - 9222:9222
     scraper:
-        build: .
+        build: ./scraper
         restart: unless-stopped
         volumes:
-            - .:/app
-            - node_modules:/app/node_modules
+            - ./scraper:/app
+            - node_modules_scraper:/app/node_modules
         working_dir: /app
         env_file:
             - .env
@@ -31,4 +30,5 @@ services:
         # command: npm start
         command: tail -f /dev/null #idle container
 volumes:
-    node_modules:
+    node_modules_web:
+    node_modules_scraper:
