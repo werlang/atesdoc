@@ -3,6 +3,7 @@
 scraper/config.js
 scraper/document/*
 
+
 # Web service
 
 web/public/js

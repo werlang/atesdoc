@@ -1,0 +1,46 @@
+@import "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css";
+@import "https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap";
+
+@size-400: ~"only screen and (min-width: 400px)";
+@size-600: ~"only screen and (min-width: 600px)";
+@size-900: ~"only screen and (min-width: 900px)";
+@size-1000: ~"only screen and (min-width: 1000px)";
+@size-1200: ~"only screen and (min-width: 1200px)";
+@size-1400: ~"only screen and (min-width: 1400px)";
+@size-1600: ~"only screen and (min-width: 1600px)";
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: rgba(var(--color-background), 1);
+    color: rgba(var(--color-text), 1);
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    
+    @media @size-600 {
+        line-height: 1.4;
+    }
+
+    --color-primary: 0, 66, 11;
+    --color-secondary: 26, 188, 156;
+    --color-background: 235, 235, 235;
+    --color-text: 33, 33, 33;
+    --color-link: 36, 140, 211;
+    
+    &.theme-dark {
+        --color-primary: 81, 181, 206;
+        --color-secondary: 26, 188, 156;
+        --color-background: 91, 91, 96;
+        --color-text: 242, 242, 242;
+        --color-link: 138, 200, 241;
+    }
+
+}
