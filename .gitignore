@@ -5,6 +5,8 @@ scraper/document/*
 
 # Web service
 
+web/public/js
+web/public/css
 
 
 # Root files
