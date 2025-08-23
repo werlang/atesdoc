@@ -46,31 +46,14 @@
                     <div class="form-group">
                         <!-- fix: label for matches input id -->
                         <label for="professor-id">Pesquisa do Professor</label>
-                        <input type="text" id="professor-id" placeholder="Ex: 1234567" required>
+                        <input type="text" id="professor-id" name="professor-id" placeholder="Ex: 1234567" required>
                         <small>Busque o professor pelo nome, CPF ou SIAPE</small>
                     </div>
                 </div>
+                <button class="default">
+                    <i class="fa-solid fa-magnifying-glass"></i> Buscar Professor
+                </button>
             </form>
-        </section>
-    
-        <!-- Navigation: use semantic <nav> with ARIA label -->
-        <section class="navigation" aria-label="Page controls">
-            <button type="button" class="default active" id="search-btn">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                Buscar Professor
-            </button>
-            <button type="button" class="default" id="prev-btn">
-                <i class="fa-solid fa-arrow-left"></i>
-                Anterior
-            </button>
-            <button type="button" class="default" id="next-btn">
-                Próximo
-                <i class="fa-solid fa-arrow-right"></i>
-            </button>
-            <button type="button" class="default" id="generate-btn">
-                <i class="fa-regular fa-file-lines"></i>
-                Gerar Atestado
-            </button>
         </section>
     </main>
 
