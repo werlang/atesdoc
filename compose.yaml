@@ -1,7 +1,6 @@
 services:
     web:
-        build:
-            context: ./web
+        build: ./web
         restart: unless-stopped
         volumes:
             - ./web:/app
@@ -12,6 +11,19 @@ services:
         ports:
             - 80:80
         command: npm run ${NODE_ENV}
+    api:
+        build: ./api
+        restart: unless-stopped
+        volumes:
+            - ./api:/app
+            - node_modules_api:/app/node_modules
+        working_dir: /app
+        env_file:
+            - .env
+        ports:
+            - 127.0.0.1:8080:8080
+        command: npm run $NODE_ENV
+        # command: tail -f /dev/null
     chrome:
         image: 'zenika/alpine-chrome:latest'
         entrypoint: ["chromium-browser", "--headless", "--disable-gpu", "--disable-software-rasterizer", "--disable-dev-shm-usage", "--no-sandbox", "--remote-debugging-address=0.0.0.0", "--remote-debugging-port=9222"]
@@ -32,3 +44,4 @@ services:
 volumes:
     node_modules_web:
     node_modules_scraper:
+    node_modules_api:
