@@ -19,10 +19,61 @@
         </div>
     </header>
 
-    <!-- Main Content -->
     <main>
-        Hello World
+        <!-- Progress Indicator -->
+        <section class="progress-indicator">
+            <div class="step active">
+                <span class="step-number">1</span>
+                <span class="step-label">Identificação</span>
+            </div>
+            <div class="step">
+                <span class="step-number">2</span>
+                <span class="step-label">Período</span>
+            </div>
+            <div class="step">
+                <span class="step-number">3</span>
+                <span class="step-label">Componentes</span>
+            </div>
+        </section>
+        
+        <section class="content">
+            <form class="user-search">
+                <div class="form-header">
+                    <h2>Dados do Professor</h2>
+                    <p>Insira as informações para busca do professor</p>
+                </div>
+                <div class="card-content">
+                    <div class="form-group">
+                        <!-- fix: label for matches input id -->
+                        <label for="professor-id">Pesquisa do Professor</label>
+                        <input type="text" id="professor-id" placeholder="Ex: 1234567" required>
+                        <small>Busque o professor pelo nome, CPF ou SIAPE</small>
+                    </div>
+                </div>
+            </form>
+        </section>
+    
+        <!-- Navigation: use semantic <nav> with ARIA label -->
+        <section class="navigation" aria-label="Page controls">
+            <button type="button" class="default active" id="search-btn">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                Buscar Professor
+            </button>
+            <button type="button" class="default" id="prev-btn">
+                <i class="fa-solid fa-arrow-left"></i>
+                Anterior
+            </button>
+            <button type="button" class="default" id="next-btn">
+                Próximo
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+            <button type="button" class="default" id="generate-btn">
+                <i class="fa-regular fa-file-lines"></i>
+                Gerar Atestado
+            </button>
+        </section>
     </main>
+
     {{{template-vars}}}
 </body>
 </html>

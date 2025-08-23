@@ -1,12 +1,13 @@
 @import "common.less";
+@import "components/form.less";
 
 
 header {
-    background: linear-gradient(135deg, rgba(var(--color-primary), 1), rgba(var(--color-primary), 0.8));
-    color: rgba(var(--color-background), 1);
+    background: linear-gradient(135deg, rgb(from var(--color-primary) r g b / 1), rgb( from var(--color-primary) r g b / 0.8));
+    color: rgb(from var(--color-background) r g b / 1);
     padding: 25px 30px;
     width: 100%;
-    box-shadow: 0 4px 10px rgba(var(--color-text), 0.5);
+    box-shadow: 0 4px 10px rgb(from var(--color-text) r g b / 0.5);
 
     .header-title {
         display: flex;
@@ -16,6 +17,148 @@ header {
         i {
             font-size: 2rem;
             margin-right: 15px;
+        }
+    }
+}
+
+main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    
+    section {
+        width: 100%;
+        max-width: 900px;
+    }
+
+    section.progress-indicator {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 25px;
+        margin-top: 40px;
+        position: relative;
+        max-width: 400px;
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            width: 150px;
+            margin-bottom: -20px;
+            flex-grow: 1;
+
+            &.active {
+                opacity: 1;
+
+                .step-number {
+                    background-color: var(--color-secondary);
+                    color: var(--color-background);
+                    transform: scale(1.1);
+                }
+
+                .step-label {
+                    color: var(--color-secondary);
+                    font-weight: bold;
+                }
+            }
+
+            &.completed {
+                .step-number {
+                    background-color: var(--color-primary);
+                    color: var(--color-background);
+                }
+
+                .step-label {
+                    color: var(--color-primary);
+                }
+            }
+
+            .step-number {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background-color: var(--color-text);
+                color: var(--color-background);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                transition: all 0.3s ease;
+            }
+
+            .step-label {
+                font-size: 0.9rem;
+                color: var(--color-text);
+                text-align: center;
+                transition: color 0.3s ease;
+                border-top: 3px solid var(--color-text);
+                margin-top: -25px;
+                padding-top: 25px;
+                flex-grow: 1;
+                width: 100%;
+                z-index: -1;
+            }
+
+        }
+    }
+
+    section.content {
+    
+        form.user-search {
+            
+            // display: none;
+            border-radius: 10px;
+            margin: 50px 0;
+            padding: 25px;
+            box-shadow: 0 1px 3px rgb(from var(--color-text) r g b / 0.1), 0 1px 3px rgb(from var(--color-text) r g b / 0.1);
+            transition: box-shadow 0.3s ease;
+            background-color: rgb(from var(--color-white) r g b / 0.8);
+    
+            &:hover {
+                box-shadow: 0 3px 6px rgb(from var(--color-text) r g b / 0.2), 0 3px 6px rgb(from var(--color-text) r g b / 0.2);
+            }
+    
+            &.active {
+                display: block;
+                animation: fadeInUp 0.4s ease;
+            }
+    
+            .card-content {
+                margin-top: 25px;
+    
+                .form-group {
+                    display: flex;
+                    flex-direction: column;
+    
+                    label {
+                        font-weight: bold;
+                        margin-bottom: 10px;
+                    }
+    
+                    small {
+                        margin-top: -10px;
+                    }
+                }
+            }
+    
+            .form-actions {
+                margin-top: 20px;
+            }
+    
+        }
+    
+    }
+    
+    .navigation {
+        button {
+            display: none;
+            width: auto;
+            border-radius: 5px;
+    
+            &.active {
+                display: block;
+            }
         }
     }
 }
