@@ -8,7 +8,42 @@
 // const myToast = new Toast('Hello world!', { timeOut: 5000, position: 'center', customClass: 'my-toast' });
 
 export default class Toast {
-    constructor(text, { timeOut, position='center', customClass, type }={}) {
+    constructor(message, type, duration, position, customClass) {
+        this.message = message;
+        this.duration = duration || 5000;
+        this.position = position || 'center';
+        this.customClass = customClass;
+        this.type = type || 'info';
+
+        this.show();
+    }
+
+    // fade out the toast
+    // duration: time in ms to fade out the toast
+    fade(duration) {
+        if (!duration) {
+            duration = this.duration;
+        }
+        // a little bit before the toast is removed, add the fade class
+        setTimeout(() => this.element.classList.add('fade'), duration - 1000);
+        // remove toast after duration
+        setTimeout(() => {
+            this.element.remove();
+
+            // remove container if it's empty (no more toasts inside it)
+            if (!document.querySelector('#toast-container .toast') && document.querySelector('#toast-container')) {
+                document.querySelector('#toast-container').remove();
+            }
+        }, duration);
+    }
+
+    show(message, type, duration, position, customClass) {
+        this.message = message || this.message;
+        this.duration = duration || this.duration;
+        this.type = type || this.type;
+        this.position = position || this.position;
+        this.customClass = customClass || this.customClass;
+
         // create container if it doesn't exist
         let container = document.querySelector('#toast-container');
         if (!container) {
@@ -20,48 +55,40 @@ export default class Toast {
         // place toast in the container with the text
         this.element = document.createElement('div');
         this.element.classList.add('toast');
-        this.element.innerHTML = text;
-        
-        this.timeOut = timeOut;
-        
-        if (position == 'center') {
-            container.classList.add('center');
-        }
+        this.element.innerHTML = this.message;
 
-        if (type) {
-            customClass = type;
+        container.classList.add(this.position);
+
+        if (this.type) {
+            this.element.classList.add(this.type);
         }
-        if (customClass) {
-            this.element.classList.add(customClass);
+        if (this.customClass) {
+            this.element.classList.add(this.customClass);
         }
 
         container.prepend(this.element);
 
-        if (this.timeOut === undefined) {
-            this.timeOut = 5000;
+        if (!this.duration) {
+            this.duration = 5000;
         }
-        if (this.timeOut > 0) {
+        if (this.duration > 0) {
             this.fade();
         }
-        return this;
     }
 
-    // fade out the toast
-    // timeOut: time in ms to fade out the toast
-    fade(timeOut) {
-        if (!timeOut) {
-            timeOut = this.timeOut;
-        }
-        // a little bit before the toast is removed, add the fade class
-        setTimeout(() => this.element.classList.add('fade'), timeOut - 1000);
-        // remove toast after timeOut
-        setTimeout(() => {
-            this.element.remove();
+    static info(message, duration, position, customClass) {
+        return new Toast(message, 'info', duration, position, customClass);
+    }
 
-            // remove container if it's empty (no more toasts inside it)
-            if (!document.querySelector('#toast-container .toast') && document.querySelector('#toast-container')) {
-                document.querySelector('#toast-container').remove();
-            }
-        }, timeOut);
+    static success(message, duration, position, customClass) {
+        return new Toast(message, 'success', duration, position, customClass);
+    }
+
+    static warning(message, duration, position, customClass) {
+        return new Toast(message, 'warning', duration, position, customClass);
+    }
+
+    static error(message, duration, position, customClass) {
+        return new Toast(message, 'error', duration, position, customClass);
     }
 }
