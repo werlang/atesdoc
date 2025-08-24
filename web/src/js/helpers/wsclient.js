@@ -38,11 +38,17 @@ export default class WSClient {
             this.socket.onmessage = null;
             this.socket.onopen = null;
         }
-        this.socket = new WebSocket(this.url);
+        try {
+            this.socket = new WebSocket(this.url);
+        } catch (error) {
+            console.error('WebSocket connection error:', error);
+            setTimeout(() => this.connect(), 1000);
+            return;
+        }
 
         // Single error handler
         const handleError = (error) => {
-            console.error('WebSocket error:', error);
+            console.log('WebSocket error:', error);
             this.isOpen = false;
             if (this.reconnect) {
                 setTimeout(() => this.connect(), 1000);
@@ -116,7 +122,7 @@ export default class WSClient {
      * @returns {string} The generated message ID.
      */
     _send(method, data) {
-        const messageId = Math.random().toString(36).slice(2);
+        const messageId = crypto.randomUUID();
         this.socket.send(JSON.stringify({
             id: messageId,
             method,

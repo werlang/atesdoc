@@ -11,8 +11,8 @@ export default class WSServer {
      * Initializes the WebSocket server and sets up connection handling.
      * @constructor
      */
-    constructor() {
-        this.ws = new WebSocketServer({ port: 8080 });
+    constructor({ port = 8080 }={}) {
+        this.ws = new WebSocketServer({ port });
         this.methodList = {};
 
         this.ws.on('connection', (ws) => {

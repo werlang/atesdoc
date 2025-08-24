@@ -24,8 +24,9 @@ wss.on('get_professors', async (payload, reply) => {
         }
     });
 
+    reply({ position: queue.getPosition(qid) + 1 });
     queue.onUpdate(qid, data => {
-        console.log(data);
+        // console.log(data);
         reply(data);
     })
 });

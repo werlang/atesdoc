@@ -21,12 +21,17 @@ export default class Queue {
         const item = this.queue.shift();
         try {
             await item.callback(item.data);
-            this.updateCallbacks.forEach(({ id, callback }) => {
-                const position = this.getPosition(id);
-                if (position !== null) {
-                    callback({ position });
-                }
-            });
+
+            this.updateCallbacks.forEach(q => {
+            const position = this.getPosition(q.id);
+            if (position === null) {
+                q.status = 'completed';
+            }
+            else {
+                q.callback({ position });
+            }
+        });
+        this.updateCallbacks = this.updateCallbacks.filter(q => q.status === 'pending');
         } catch (error) {
             console.error('Error processing queue item:', error);
         } finally {
@@ -45,6 +50,6 @@ export default class Queue {
     }
 
     onUpdate(id, callback) {
-        this.updateCallbacks.push({ id, callback });
+        this.updateCallbacks.push({ id, callback, status: 'pending' });
     }
 }
