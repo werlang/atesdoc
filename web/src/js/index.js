@@ -1,10 +1,23 @@
 import TemplateVar from "./helpers/template-var.js";
 import Form from './components/form.js';
 import WSClient from "./helpers/wsclient.js";
+import Toast from "./components/toast.js";
 
 import '../less/index.less';
 
-const wsserver = new WSClient({ url: 'ws://localhost:8080', reconnect: false });
+const wsserver = new WSClient({ url: 'ws://localhost:8080' });
+
+let firstConnection = true;
+wsserver.onConnect(() => {
+    if (!firstConnection) {
+        Toast.success('Reconnected to WebSocket server');
+    }
+    firstConnection = false;
+});
+wsserver.onDisconnect(() => {
+    Toast.error('Disconnected from WebSocket server');
+});
+
 
 // const data = await this.server.send('run', {
 //     gladiators: this.gladiators,

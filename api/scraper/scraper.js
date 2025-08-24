@@ -51,7 +51,14 @@ export default class SUAPScraper {
             await this.login();
         }
 
-        await this.page.goto(url);
+        try {
+            await this.page.goto(url);
+        } catch (err) {
+            this.connected = false;
+            await this.connect();
+            console.log('Reconnected to browser, trying to load page again...');
+            return await this.goto(url, confirmElement);
+        }
 
         if (confirmElement) {
             try {

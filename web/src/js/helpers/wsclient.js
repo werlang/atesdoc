@@ -20,8 +20,7 @@ export default class WSClient {
         this.reconnect = reconnect;
         this.isOpen = false;
         this.onMessageListeners = [];
-        this._isConnecting = false; // Prevent multiple simultaneous connections
-        this._shouldReconnect = true; // Track if reconnect is desired
+        this.isConnecting = false; // Prevent multiple simultaneous connections
         this.connect();
     }
 
@@ -31,9 +30,8 @@ export default class WSClient {
      * @returns {Promise<void>}
      */
     async connect() {
-        if (this._isConnecting) return;
-        this._isConnecting = true;
-        this._shouldReconnect = this.reconnect;
+        if (this.isConnecting) return;
+        this.isConnecting = true;
         if (this.socket) {
             this.socket.onclose = null;
             this.socket.onerror = null;
@@ -46,7 +44,7 @@ export default class WSClient {
         const handleError = (error) => {
             console.error('WebSocket error:', error);
             this.isOpen = false;
-            if (this._shouldReconnect) {
+            if (this.reconnect) {
                 setTimeout(() => this.connect(), 1000);
             }
         };
@@ -54,11 +52,15 @@ export default class WSClient {
         this.socket.onclose = () => {
             this.isOpen = false;
             // console.log('WebSocket connection closed');
-            if (this._shouldReconnect) {
+            if (this.onDisconnectCallback) {
+                this.onDisconnectCallback();
+            }
+            if (this.reconnect) {
                 setTimeout(() => this.connect(), 1000);
             }
         };
         this.socket.onerror = handleError;
+
 
         this.socket.onmessage = (event) => {
             this.onMessageListeners.forEach(listener => {
@@ -74,7 +76,7 @@ export default class WSClient {
         try {
             await this.open();
         } finally {
-            this._isConnecting = false;
+            this.isConnecting = false;
         }
     }
 
@@ -191,6 +193,14 @@ export default class WSClient {
     }
 
     /**
+     * Registers a callback to be called when the connection is closed.
+     * @param {function} callback - The function to call on disconnect.
+     */
+    onDisconnect(callback) {
+        this.onDisconnectCallback = callback;
+    }
+
+    /**
      * Adds a listener for incoming WebSocket messages.
      * @param {function} listener - The function to call on each message event.
      * @returns {function} The listener function (for removal).
@@ -212,7 +222,7 @@ export default class WSClient {
      * Closes the WebSocket connection and prevents further reconnects.
      */
     close() {
-        this._shouldReconnect = false;
+        this.reconnect = false;
         if (this.socket) {
             this.socket.close();
         }
