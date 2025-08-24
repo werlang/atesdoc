@@ -17,7 +17,7 @@ const form = new Form(document.querySelector('form.user-search'));
 form.submit(async data => {
     // console.log(data);
     const response = await wsserver.send('get_professors', {
-        search: data['professor-id']
+        query: data['professor-id']
     });
     console.log(response);
 });
