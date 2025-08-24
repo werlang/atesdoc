@@ -1,4 +1,3 @@
-import TemplateVar from "./helpers/template-var.js";
 import Form from './components/form.js';
 import WSClient from "./helpers/wsclient.js";
 import Toast from "./components/toast.js";
@@ -29,10 +28,11 @@ wsserver.onDisconnect(() => {
 const form = new Form(document.querySelector('form.user-search'));
 form.submit(async data => {
     // console.log(data);
-    const response = await wsserver.send('get_professors', {
+    wsserver.stream('get_professors', {
         query: data['professor-id']
+    }, response => {
+        console.log(response);
     });
-    console.log(response);
 });
 
 /* <button type="button" class="default" id="search-btn">

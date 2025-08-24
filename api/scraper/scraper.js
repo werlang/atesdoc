@@ -47,11 +47,10 @@ export default class SUAPScraper {
     }
 
     async goto(url, confirmElement) {
-        if (!this.logged) {
-            await this.login();
-        }
-
         try {
+            if (!this.logged) {
+                await this.login();
+            }
             await this.page.goto(url);
         } catch (err) {
             this.connected = false;
@@ -81,9 +80,6 @@ export default class SUAPScraper {
             throw new CustomError(500, 'Not connected to browser. Call connect() first.');
         }
 
-        const campus = {
-            CH: 4
-        }
         // https://suap.ifsul.edu.br/admin/edu/professor/?vinculo__setor__uo=4&q=pablo&tab=tab_any_data
         suapConfig.professorSearch.query.q = query;
         query = new URLSearchParams(suapConfig.professorSearch.query).toString();
