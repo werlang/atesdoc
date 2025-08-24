@@ -53,6 +53,7 @@ export default class SUAPScraper {
             }
             await this.page.goto(url);
         } catch (err) {
+            console.error(err);
             this.connected = false;
             await this.connect();
             console.log('Reconnected to browser, trying to load page again...');
@@ -75,6 +76,58 @@ export default class SUAPScraper {
         }
     }
 
+    async evaluate(fn, data) {
+        // Serialize functions in data
+        const serializeFunctions = (data) => {
+            for (const [key, value] of Object.entries(data)) {
+                if (typeof value === 'function') {
+                    data[key] = `fn:${value.toString()}`;
+                } 
+                else if (value && typeof value === 'object' && !Array.isArray(value)) {
+                    data[key] = serializeFunctions(value);
+                }
+                else if (Array.isArray(value)) {
+                    data[key] = value.map(item => serializeFunctions(item));
+                }
+                else {
+                    data[key] = value;
+                }
+            }
+            return data;
+        };
+        const serialized = serializeFunctions(data);
+        // serialize function argument
+        serialized.fn = fn.toString();
+        // console.log(serialized);
+
+        return this.page.evaluate((data) => {
+            // in the browser, deserialize functions in data
+            const deserializeFunctions = (data) => {
+                for (const [key, value] of Object.entries(data)) {
+                    if (typeof value === 'string' && value.startsWith('fn:')) {
+                        data[key] = eval(`(${value.slice(3)})`);
+                    }
+                    else if (typeof value === 'object' && !Array.isArray(value)) {
+                        data[key] = deserializeFunctions(value);
+                    }
+                    else if (Array.isArray(value)) {
+                        data[key] = value.map(item => deserializeFunctions(item));
+                    }
+                }
+                return data;
+            };
+
+            // Deserialize function argument
+            const fn = eval(`(${data.fn})`);
+            delete data.fn;
+            const deserialized = deserializeFunctions(data);
+
+            // execute function with deserialized data
+            // if inside the function some function is called from data object, it will now work properly
+            return fn(deserialized);
+        }, serialized);
+    }
+
     async findProfessor(query) {
         if (!this.connected) {
             throw new CustomError(500, 'Not connected to browser. Call connect() first.');
@@ -87,31 +140,22 @@ export default class SUAPScraper {
         console.log(`Accessing URL: ${url}`);
         await this.goto(url, suapConfig.professorSearch.ready);
 
-        const data = await this.page.evaluate(async () => {
+        const data = await this.evaluate((template) => {
             const professors = [];
 
-            document.querySelectorAll('table#result_list tr').forEach(tr => {
-                if (!tr.querySelector('td.field-get_dados_gerais dd')) return;
+            document.querySelectorAll(template.ready).forEach(tr => {
+                if (!tr.querySelector(template.hasRows)) return;
 
                 const professor = {};
 
-                // /edu/professor/ID/
-                professor.id = parseInt(tr.querySelector('th a.icon-view')?.href.match(/\/edu\/professor\/(\d*)\//)[1]);
-
-                const generalData = Array.from(tr.querySelectorAll('td.field-get_dados_gerais dd')).map(dd => dd.textContent.trim());
-
-                professor.name = generalData[0];
-                professor.cpf = generalData[1];
-                professor.email = generalData[3];
-
-                professor.siape = tr.querySelector('td.field-display_matricula')?.textContent.trim();
-
-                professor.picture = tr.querySelector('td.field-get_foto img')?.src;
+                for (const [key, fn] of Object.entries(template.data)) {
+                    professor[key] = fn(tr);
+                }
 
                 professors.push(professor);
             });
             return professors;
-        });
+        }, suapConfig.professorSearch);
         console.log(data);
 
         return data;

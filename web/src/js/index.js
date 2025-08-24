@@ -9,30 +9,37 @@ const wsserver = new WSClient({ url: 'ws://localhost:8080' });
 let firstConnection = true;
 wsserver.onConnect(() => {
     if (!firstConnection) {
-        Toast.success('Reconnected to WebSocket server');
+        Toast.success('Reconectado ao servidor WebSocket');
     }
     firstConnection = false;
 });
 wsserver.onDisconnect(() => {
-    Toast.error('Disconnected from WebSocket server');
+    Toast.error('Conexão perdida com o servidor WebSocket');
 });
-
-
-// const data = await this.server.send('run', {
-//     gladiators: this.gladiators,
-//     realTime: this.realTime,
-// });
-// this.server.stream('simulation', { simulation: this.id }, data => {
-// });
 
 const form = new Form(document.querySelector('form.user-search'));
 form.submit(async data => {
     // console.log(data);
-    wsserver.stream('get_professors', {
+    await new Promise((resolve, reject) => wsserver.stream('get_professors', {
         query: data['professor-id']
-    }, response => {
-        console.log(response);
-    });
+    }, message => {
+        console.log(message);
+
+        if (message.position && message.position > 1) {
+            Toast.info(`Outro processo está em andamento. Sua posição na fila: <strong>${message.position}.</strong>`);
+        }
+
+        if (message.error) {
+            Toast.error(message.error);
+            resolve(message.error);
+            return;
+        }
+
+        if (message.professors) {
+            resolve(message.professors);
+            return;
+        }
+    }));
 });
 
 /* <button type="button" class="default" id="search-btn">
