@@ -1,6 +1,7 @@
 import puppeteer from 'puppeteer-core';
 import suapConfig from '../suap-config.js';
 import CustomError from '../helpers/error.js';
+import EventEmitter from 'events';
 
 export default class SUAPScraper {
 
@@ -8,6 +9,9 @@ export default class SUAPScraper {
         this.username = username || process.env.SUAP_USERNAME;
         this.password = password || process.env.SUAP_PASSWORD;
         this.chromePort = chromePort || process.env.CHROME_PORT || 3000;
+        this.emitter = new EventEmitter();
+        this.connected = false;
+        this.logged = false;
     }
 
     async connect() {
@@ -49,6 +53,7 @@ export default class SUAPScraper {
     async goto(url, confirmElement) {
         try {
             if (!this.logged) {
+                this.emitter.emit('login', { username: this.username });
                 await this.login();
             }
             await this.page.goto(url);
@@ -143,7 +148,7 @@ export default class SUAPScraper {
         const data = await this.evaluate((template) => {
             const professors = [];
 
-            document.querySelectorAll(template.ready).forEach(tr => {
+            document.querySelectorAll(template.rows).forEach(tr => {
                 if (!tr.querySelector(template.hasRows)) return;
 
                 const professor = {};

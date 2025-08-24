@@ -20,26 +20,51 @@ wsserver.onDisconnect(() => {
 const form = new Form(document.querySelector('form.user-search'));
 form.submit(async data => {
     // console.log(data);
-    await new Promise((resolve, reject) => wsserver.stream('get_professors', {
-        query: data['professor-id']
-    }, message => {
-        console.log(message);
+    let closeStream = null;
+    let processing = false;
+    let toast = null;
+    await new Promise(async (resolve) => {
+        closeStream = await wsserver.stream('get_professors', {
+            query: data['professor-id']
+        }, message => {
+            console.log(new Date().toISOString(), message);
 
-        if (message.position && message.position > 1) {
-            Toast.info(`Outro processo está em andamento. Sua posição na fila: <strong>${message.position}.</strong>`);
-        }
+            if (message.status === 'in queue' && message.position > 1) {
+                if (toast) { toast.close(); }
+                toast = Toast.info(`Outro processo está em andamento. Sua posição na fila: <strong>${message.position}.</strong>`);
+                return;
+            }
+            
+            if (message.position === 0) {
+                if (toast) { toast.close(); }
+                toast = Toast.success('Buscando professores...');
+                processing = true;
+                return;
+            }
 
-        if (message.error) {
-            Toast.error(message.error);
-            resolve(message.error);
-            return;
-        }
+            if (!processing) return;
 
-        if (message.professors) {
-            resolve(message.professors);
-            return;
-        }
-    }));
+            if (message.status === 'authenticating') {
+                if (toast) { toast.close(); }
+                toast = Toast.warning('Realizando autenticação no SUAP...');
+                return;
+            }
+
+            if (message.error) {
+                if (toast) { toast.close(); }
+                toast = Toast.error(message.error);
+                resolve(message.error);
+                return;
+            }
+
+            if (message.professors) {
+                if (toast) { toast.close(); }
+                resolve(message.professors);
+                return;
+            }
+        });
+    });
+    closeStream();
 });
 
 /* <button type="button" class="default" id="search-btn">

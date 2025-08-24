@@ -9,11 +9,16 @@ const scraper = await new SUAPScraper().connect();
 const queue = new Queue();
 
 wss.on('get_professors', async (payload, reply) => {
+    scraper.emitter.on('login', () => {
+        reply({ status: 'authenticating' });
+    });
+
     const qid = queue.add({
         data: payload,
         callback: async (payload) => {
             try {
                 // console.log(payload);
+                reply({ status: 'processing', position: 0 });
                 const professors = await scraper.findProfessor(payload.query);
                 reply({ professors });
             }
@@ -24,11 +29,11 @@ wss.on('get_professors', async (payload, reply) => {
         }
     });
 
-    reply({ position: queue.getPosition(qid) + 1 });
+    reply({ status: 'in queue', position: queue.getPosition(qid) + 1 });
     queue.onUpdate(qid, data => {
         // console.log(data);
-        reply(data);
-    })
+        reply({ status: 'in queue', ...data });
+    });
 });
 
 // TODO: Implement the main scraping logic

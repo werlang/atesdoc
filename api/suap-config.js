@@ -14,7 +14,8 @@ export default {
             q: 'USERDATA',
             tab: 'tab_any_data'
         },
-        ready: 'table#result_list tr',
+        ready: 'table#result_list, #changelist-form .msg.alert',
+        rows: 'table#result_list tr',
         hasRows: 'td.field-get_dados_gerais dd',
         data: {
             id: (tr) => parseInt(tr.querySelector('th a.icon-view')?.href.match(/\/edu\/professor\/(\d*)\//)[1]),

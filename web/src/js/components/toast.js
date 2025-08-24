@@ -66,7 +66,7 @@ export default class Toast {
             this.element.classList.add(this.customClass);
         }
 
-        container.prepend(this.element);
+        container.append(this.element);
 
         if (!this.duration) {
             this.duration = 5000;
@@ -74,6 +74,10 @@ export default class Toast {
         if (this.duration > 0) {
             this.fade();
         }
+    }
+
+    close() {
+        this.fade(1);
     }
 
     static info(message, duration, position, customClass) {
