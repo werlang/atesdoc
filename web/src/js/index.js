@@ -21,7 +21,8 @@ const professorListContainer = document.querySelector('.professor-list');
 
 const form = new Form(document.querySelector('form.user-search'));
 form.submit(async data => {
-    professorListContainer.innerHTML = '';
+    // Show skeleton cards immediately when form is submitted
+    renderSkeletonList();
     // console.log(data);
     let closeStream = null;
     let processing = false;
@@ -71,6 +72,110 @@ form.submit(async data => {
     closeStream();
 });
 
+function renderSkeletonList(count = 2) {
+    professorListContainer.classList.remove('empty-state');
+    professorListContainer.innerHTML = `
+        <div class="list-header">
+            <h2>Buscando Professores...</h2>
+            <p>Aguarde enquanto carregamos os resultados</p>
+        </div>
+    `;
+    
+    const professorsGrid = document.createElement('div');
+    professorsGrid.classList.add('professors-grid');
+    
+    // Create skeleton cards
+    for (let i = 0; i < count; i++) {
+        const card = createSkeletonCard();
+        professorsGrid.append(card);
+    }
+    
+    professorListContainer.append(professorsGrid);
+    
+    // Scroll to the results
+    professorListContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function createSkeletonCard() {
+    const card = document.createElement('div');
+    card.classList.add('professor-card', 'skeleton');
+    card.innerHTML = `
+        <div class="professor-avatar">
+            <div class="skeleton-img"></div>
+            <div class="skeleton-id"></div>
+        </div>
+        <div class="professor-info">
+            <div class="skeleton-name"></div>
+            <div class="professor-details">
+                <div class="detail-item">
+                    <div class="skeleton-icon"></div>
+                    <div class="skeleton-text"></div>
+                </div>
+                <div class="detail-item">
+                    <div class="skeleton-icon"></div>
+                    <div class="skeleton-text"></div>
+                </div>
+                <div class="detail-item">
+                    <div class="skeleton-icon"></div>
+                    <div class="skeleton-text skeleton-text-long"></div>
+                </div>
+            </div>
+        </div>
+        <div class="professor-actions">
+            <div class="skeleton-button"></div>
+        </div>
+    `;
+    return card;
+}
+
+function createProfessorCard(data) {
+    const card = document.createElement('div');
+    card.classList.add('professor-card');
+    card.innerHTML = `
+        <div class="professor-avatar">
+            <img src="${data.picture}" alt="Foto do professor ${data.name}">
+            <div class="professor-id">ID: ${data.id}</div>
+        </div>
+        <div class="professor-info">
+            <h3 class="professor-name">${data.name}</h3>
+            <div class="professor-details">
+                <div class="detail-item">
+                    <i class="fa-solid fa-id-card"></i>
+                    <span>CPF: ${data.cpf}</span>
+                </div>
+                <div class="detail-item">
+                    <i class="fa-solid fa-user-tie"></i>
+                    <span>SIAPE: ${data.siape}</span>
+                </div>
+                <div class="detail-item">
+                    <i class="fa-solid fa-envelope"></i>
+                    <span>${data.email}</span>
+                </div>
+            </div>
+        </div>
+        <div class="professor-actions">
+            <button type="button" class="select-professor">
+                <i class="fa-solid"></i>
+                <span>Selecionar</span>
+            </button>
+        </div>
+    `;
+
+    card.querySelector('button.select-professor').addEventListener('click', () => {
+        card.parentElement.querySelectorAll('.professor-card').forEach((c) => {
+            c.classList.toggle('selected', c === card);
+            const button = c.querySelector('button.select-professor');
+            button.innerHTML = `
+                <i class="fa-solid ${c === card ? 'fa-check' : ''}"></i>
+                <span>${c === card ? 'Selecionado' : 'Selecionar'}</span>
+            `;
+        });
+        selectProfessor(data);
+    });
+
+    return card;
+}
+
 function renderProfessorList(professors) {
     // Handle empty results
     if (!professors || professors.length === 0) {
@@ -84,6 +189,7 @@ function renderProfessorList(professors) {
         return;
     }
 
+    professorListContainer.classList.remove('empty-state');
     professorListContainer.innerHTML = `
         <div class="list-header">
             <h2>Professores Encontrados</h2>
@@ -96,54 +202,11 @@ function renderProfessorList(professors) {
     
     // Create professor cards
     professors.forEach((professor) => {
-        const professorCard = document.createElement('div');
-        professorCard.classList.add('professor-card');
-        professorCard.innerHTML = `
-            <div class="professor-avatar">
-                <img src="${professor.picture}" alt="Foto do professor ${professor.name}">
-                <div class="professor-id">ID: ${professor.id}</div>
-            </div>
-            <div class="professor-info">
-                <h3 class="professor-name">${professor.name}</h3>
-                <div class="professor-details">
-                    <div class="detail-item">
-                        <i class="fa-solid fa-id-card"></i>
-                        <span>CPF: ${professor.cpf}</span>
-                    </div>
-                    <div class="detail-item">
-                        <i class="fa-solid fa-user-tie"></i>
-                        <span>SIAPE: ${professor.siape}</span>
-                    </div>
-                    <div class="detail-item">
-                        <i class="fa-solid fa-envelope"></i>
-                        <span>${professor.email}</span>
-                    </div>
-                </div>
-            </div>
-            <div class="professor-actions">
-                <button type="button" class="select-professor">
-                    <i class="fa-solid"></i>
-                    <span>Selecionar</span>
-                </button>
-            </div>
-        `;
-        
-        professorsGrid.appendChild(professorCard);
-
-        professorCard.querySelector('button.select-professor').addEventListener('click', () => {
-            document.querySelectorAll('.professor-card').forEach((card) => {
-                card.classList.toggle('selected', card === professorCard);
-                const button = card.querySelector('button.select-professor');
-                button.innerHTML = `
-                    <i class="fa-solid ${card === professorCard ? 'fa-check' : ''}"></i>
-                    <span>${card === professorCard ? 'Selecionado' : 'Selecionar'}</span>
-                `;
-            });
-            selectProfessor(professor);
-        });
+        const card = createProfessorCard(professor);
+        professorsGrid.append(card);
     });
     
-    professorListContainer.appendChild(professorsGrid);
+    professorListContainer.append(professorsGrid);
 
     // Scroll to the results
     professorListContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });

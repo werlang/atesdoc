@@ -204,7 +204,7 @@ main {
                 grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
             }
 
-            .professor-card {
+                .professor-card {
                 background: rgb(from var(--color-white) r g b / 0.9);
                 border-radius: 12px;
                 padding: 20px;
@@ -227,7 +227,72 @@ main {
                     }
                 }
 
-
+                &.skeleton {
+                    cursor: default;
+                    
+                    &:hover {
+                        box-shadow: 0 2px 8px rgb(from var(--color-text) r g b / 0.1);
+                        border-color: transparent;
+                    }
+                    
+                    .skeleton-img,
+                    .skeleton-id,
+                    .skeleton-name,
+                    .skeleton-icon,
+                    .skeleton-text,
+                    .skeleton-button {
+                        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+                        background-size: 200% 100%;
+                        animation: skeleton-loading 3.0s infinite;
+                        border-radius: 4px;
+                    }
+                    
+                    .skeleton-img {
+                        width: 80px;
+                        height: 80px;
+                        border-radius: 50%;
+                        border: 3px solid transparent;
+                    }
+                    
+                    .skeleton-id {
+                        width: 60px;
+                        height: 20px;
+                        border-radius: 12px;
+                        position: absolute;
+                        top: -5px;
+                        right: calc(50% - 60px);
+                    }
+                    
+                    .skeleton-name {
+                        height: 24px;
+                        width: 80%;
+                        margin: 0 auto 15px;
+                        border-radius: 6px;
+                    }
+                    
+                    .skeleton-icon {
+                        width: 16px;
+                        height: 16px;
+                        border-radius: 2px;
+                        flex-shrink: 0;
+                    }
+                    
+                    .skeleton-text {
+                        height: 16px;
+                        width: 120px;
+                        border-radius: 3px;
+                        
+                        &.skeleton-text-long {
+                            width: 180px;
+                        }
+                    }
+                    
+                    .skeleton-button {
+                        height: 40px;
+                        width: 120px;
+                        border-radius: 8px;
+                    }
+                }
                 .professor-avatar {
                     position: relative;
                     display: flex;
@@ -312,7 +377,7 @@ main {
                         color: var(--color-white);
                         border: none;
                         padding: 12px 24px;
-                        border-radius: 8px;
+                        border-radius: 5px;
                         font-weight: 600;
                         cursor: pointer;
                         transition: all 0.3s ease;
@@ -347,5 +412,14 @@ main {
     to {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+@keyframes skeleton-loading {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
     }
 }
