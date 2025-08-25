@@ -1,0 +1,143 @@
+main {
+    .semester-selection {
+        .form-header {
+            text-align: center;
+
+            .professor-name {
+                color: var(--color-secondary);
+                font-weight: 600;
+            }
+        }
+
+        .semester-list {
+            margin-top: 25px;
+            margin-bottom: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 16px;
+
+            .semester-button {
+                position: relative;
+                background: rgb(from var(--color-white) r g b / 0.9);
+                border: 2px solid rgb(from var(--color-primary) r g b / 0.3);
+                border-radius: 8px;
+                cursor: pointer;
+                transition: all 0.25s;
+                
+                &:hover {
+                    border-color: rgb(from var(--color-primary) r g b / 0.6);
+                }
+
+                input[type="checkbox"] {
+                    position: absolute;
+                    opacity: 0;
+                    cursor: pointer;
+                    height: 0;
+                    width: 0;
+                    outline: none;
+
+                    &:checked + label {
+                        background-color: rgb(from var(--color-primary) r g b / 0.9);
+                        color: rgb(from var(--color-background) r g b / 1);
+
+                        &::after {
+                            content: '';
+                            position: absolute;
+                            top: 12px;
+                            right: 12px;
+                            width: 20px;
+                            height: 20px;
+                            background: rgb(from var(--color-background) r g b / 1);
+                            border-radius: 50%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-family: 'Font Awesome 6 Free';
+                            font-weight: 900;
+                            font-size: 10px;
+                            color: rgb(from var(--color-primary) r g b / 1);
+                            content: '\f00c'; // FontAwesome checkmark
+                        }
+                    }
+                }
+
+                label {
+                    position: relative;
+                    display: block;
+                    padding: 20px 16px;
+                    color: rgb(from var(--color-text) r g b / 1);
+                    font-weight: 500;
+                    font-size: 1rem;
+                    text-align: center;
+                    cursor: pointer;
+                    transition: all 0.25s;
+                    box-sizing: border-box;
+                    border-radius: 5px;
+                    width: 100%;
+                    margin: 0;
+                    line-height: 1.2;
+                    z-index: 2;
+                    position: relative;
+
+                    // Material Design 3 typography scaling
+                    @media @size-600 {
+                        font-size: 1.1rem;
+                        padding: 22px 18px;
+                    }
+                }
+            }
+        }
+    }
+
+    // Enhanced responsive design with Material Design breakpoints
+    @media @size-600 {
+        .semester-selection {
+            .semester-list {
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+                gap: 20px;
+            }
+        }
+    }
+
+    @media @size-900 {
+        .semester-selection {
+            .semester-list {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 24px;
+            }
+        }
+    }
+
+    @media (max-width: 400px) {
+        .semester-selection {
+            padding: 20px;
+            margin: 30px 0;
+
+            .form-header {
+                h2 {
+                    font-size: 1.3rem;
+                }
+            }
+
+            .semester-list {
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+
+                .semester-button {
+                    label {
+                        padding: 16px 12px;
+                        font-size: 0.9rem;
+                    }
+
+                    input[type="checkbox"]:checked + label::after {
+                        top: 8px;
+                        right: 8px;
+                        width: 16px;
+                        height: 16px;
+                        font-size: 8px;
+                    }
+                }
+            }
+        }
+    }
+}

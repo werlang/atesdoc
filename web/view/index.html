@@ -46,8 +46,7 @@
                     <div class="form-group">
                         <!-- fix: label for matches input id -->
                         <label for="professor-id">Pesquisa do Professor</label>
-                        <input type="text" id="professor-id" name="professor-id" placeholder="Ex: 1234567" required>
-                        <small>Busque o professor pelo nome, CPF ou SIAPE</small>
+                        <input type="text" id="professor-id" name="professor-id" placeholder="Nome, CPF ou SIAPE do Professor" required>
                     </div>
                 </div>
                 <button id="search-professor-btn" class="default">
@@ -61,9 +60,24 @@
         </section>
 
         <section class="content">
-            FOO
+            <form class="semester-selection">
+                <div class="form-header">
+                    <h2>Período Letivo</h2>
+                    <p>Selecione os semestres desejados para o atestado de <strong class="professor-name">PROFESSOR</strong></p>
+                </div>
+                <div class="semester-list">
+                    <!-- Semester selection will be dynamically populated here -->
+                </div>
+                <button id="prev-semester-btn" class="default step">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>Anterior</span>
+                </button>
+            </form>
         </section>
-        
+        <section class="content">
+            BAR
+        </section>
+
     </main>
 
     {{{template-vars}}}
