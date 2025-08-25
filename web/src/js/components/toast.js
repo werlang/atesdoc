@@ -10,7 +10,7 @@
 export default class Toast {
     constructor(message, type, duration, position, customClass) {
         this.message = message;
-        this.duration = duration || 5000;
+        this.duration = duration !== undefined ? duration : 5000;
         this.position = position || 'center';
         this.customClass = customClass;
         this.type = type || 'info';
@@ -21,7 +21,7 @@ export default class Toast {
     // fade out the toast
     // duration: time in ms to fade out the toast
     fade(duration) {
-        if (!duration) {
+        if (duration !== null) {
             duration = this.duration;
         }
         // a little bit before the toast is removed, add the fade class
@@ -68,10 +68,10 @@ export default class Toast {
 
         container.append(this.element);
 
-        if (!this.duration) {
+        if (this.duration != null) {
             this.duration = 5000;
         }
-        if (this.duration > 0) {
+        if (this.duration !== null && this.duration > 0) {
             this.fade();
         }
     }
