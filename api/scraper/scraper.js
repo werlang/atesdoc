@@ -23,7 +23,12 @@ export default class SUAPScraper {
             });
         } catch (error) {
             console.error('Could not connect to Chrome.');
-            throw error;
+            return await new Promise(resolve => {
+                setTimeout(async () => {
+                    await this.connect();
+                    resolve(this);
+                }, 3000);
+            });
         }
 
         const page = await this.browser.newPage();
