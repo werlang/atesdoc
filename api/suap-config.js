@@ -26,4 +26,7 @@ export default {
             picture: (tr) => tr.querySelector('td.field-get_foto img')?.src,
         }
     },
+    bookSearch: {
+        url: (pid, semester) => `edu/professor/${pid}/?tab=disciplinas&ano-periodo=${semester}`,
+    }
 }

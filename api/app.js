@@ -36,6 +36,31 @@ wss.on('get_professors', async (payload, reply) => {
     });
 });
 
+wss.on('get_books', async (payload, reply) => {
+    scraper.emitter.on('login', () => {
+        reply({ status: 'authenticating' });
+    });
+
+    const qid = queue.add({
+        data: payload,
+        callback: async (payload) => {
+            try {
+                reply({ status: 'processing', position: 0 });
+                const books = await scraper.findBooks(payload.professorId, payload.semesters);
+                reply({ books });
+            } catch (error) {
+                console.error('Error in get_books:', error);
+                reply({ error: error.message || 'An error occurred' });
+            }
+        }
+    });
+
+    reply({ status: 'in queue', position: queue.getPosition(qid) + 1 });
+    queue.onUpdate(qid, data => {
+        reply({ status: 'in queue', ...data });
+    });
+});
+
 // TODO: Implement the main scraping logic
 // TODO: Implement queue to scraper
 // TODO: receive api ws requests, call scrapers, return results

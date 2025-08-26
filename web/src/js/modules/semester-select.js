@@ -2,11 +2,13 @@ import Form from "../components/form.js";
 
 export default function(wsserver, state) {
     const form = new Form(document.querySelector('form.semester-selection'));
-    form.submit((data, button) => {
+    form.submit((_, button) => {
         if (button.get().id === 'prev-semester-btn') {
             state.update({ step: 1 });
             return;
         }
+
+        getBooks();
     });
 
     state.onUpdate((newState) => {
@@ -74,4 +76,17 @@ export default function(wsserver, state) {
         });
         renderSemesterList();
     });
+
+    async function getBooks() {
+        let closeStream;
+        await new Promise(async (resolve) => {
+            closeStream = await wsserver.stream('get_books', {
+                semesters: state.get().semesters,
+                professorId: state.get().professor.id,
+            }, message => {
+                console.log(new Date().toISOString(), message);
+            });
+        });
+        closeStream();
+    }
 }

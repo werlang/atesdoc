@@ -170,4 +170,14 @@ export default class SUAPScraper {
 
         return data;
     }
+
+    async findBooks(professorId, semesters) {
+        if (!this.connected) {
+            throw new CustomError(500, 'Not connected to browser. Call connect() first.');
+        }
+        return semesters.map(semester => {
+            const url = `${suapConfig.baseUrl}/${suapConfig.bookSearch.url(professorId, semester)}`;
+            return url;
+        })
+    }
 }
