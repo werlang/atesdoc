@@ -198,7 +198,7 @@ export default class Form {
             
             try {
                 button.disable();
-                await callback(data);
+                await callback(data, new Button({ element: e.submitter }));
                 button.enable();
             }
             catch (e) {

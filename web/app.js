@@ -24,12 +24,6 @@ app.get('/', (req, res) => {
     });
 });
 
-// TODO: remove this and all 0index related files.
-app.get('/0', (req, res) => {
-    res.templateRender('0index', {
-    });
-});
-
 // static assets
 app.use(express.static(import.meta.dirname + '/public/'));
 

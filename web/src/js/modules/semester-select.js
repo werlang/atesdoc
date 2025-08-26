@@ -1,15 +1,16 @@
-import { updateProgressStep } from "./common.js";
+import Form from "../components/form.js";
 
-export default function() {
-    const form = document.querySelector('form.semester-selection');
-    form.addEventListener('submit', (event) => {
-        event.preventDefault();
-        updateProgressStep(1);
+export default function(wsserver, state) {
+    const form = new Form(document.querySelector('form.semester-selection'));
+    form.submit((data, button) => {
+        if (button.get().id === 'prev-semester-btn') {
+            state.update({ step: 1 });
+            return;
+        }
     });
 
-    document.addEventListener('professor-selected', (event) => {
-        const professor = event.detail;
-        form.querySelector('.form-header .professor-name').textContent = professor.name;
+    state.onUpdate((newState) => {
+        form.get().querySelector('.form-header .professor-name').textContent = newState.professor?.name;
     });
 
     function createSemesterList() {
@@ -34,16 +35,27 @@ export default function() {
     const semesterSelectContainer = document.querySelector('.semester-list');
     const semesterList = createSemesterList();
 
+    function formatSemester(text) {
+        const [year, semester] = text.split(/[\.\/]/).map(Number);
+        return { year, semester, checked: true };
+    }
+
     function renderSemesterList() {
+        semesterSelectContainer.innerHTML = '';
         semesterList.forEach(({ semester, year, checked }) => {
             const container = document.createElement('div');
             container.classList.add('semester-button');
             container.innerHTML = `
-            <input type="checkbox" id="semester-${year}-${semester}" value="${year}.${semester}" ${checked ? 'checked' : ''}>
-            <label for="semester-${year}-${semester}">${year}/${semester}</label>
-        `;
+                <input type="checkbox" name="semester-${year}-${semester}" id="semester-${year}-${semester}" value="${year}.${semester}" ${checked ? 'checked' : ''}>
+                <label for="semester-${year}-${semester}">${year}/${semester}</label>
+            `;
 
             semesterSelectContainer.appendChild(container);
+
+            container.querySelector('input').addEventListener('change', () => {
+                const semesters = Array.from(semesterSelectContainer.querySelectorAll('input[type="checkbox"]:checked')).map(e => e.value);
+                state.update({ semesters });
+            });
         });
     }
 
@@ -52,4 +64,14 @@ export default function() {
     firstFour.forEach(sem => sem.checked = true);
 
     renderSemesterList();
+
+    state.onUpdate((newState) => {
+        if (!newState.semesters.length) return;
+        const formattedSemesters = newState.semesters.map(formatSemester);
+        semesterList.forEach(sem => {
+            const found = formattedSemesters.find(s => s.year === sem.year && s.semester === sem.semester);
+            sem.checked = !!found;
+        });
+        renderSemesterList();
+    });
 }

@@ -1,8 +1,7 @@
 import Form from '../components/form.js';
 import Toast from '../components/toast.js';
-import { updateProgressStep } from './common.js';
 
-export default function(wsserver) {
+export default function(wsserver, state) {
     const professorListContainer = document.querySelector('.professor-list');
 
     const form = new Form(document.querySelector('form.user-search'));
@@ -157,8 +156,7 @@ export default function(wsserver) {
                 `;
             });
 
-            document.dispatchEvent(new CustomEvent('professor-selected', { detail: data }));
-            updateProgressStep(2);
+            state.update({ step: 2, professor: data });
         });
 
         return card;
@@ -200,5 +198,9 @@ export default function(wsserver) {
         professorListContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    updateProgressStep(2)
+    state.onUpdate((newState) => {
+        if (!professorListContainer.querySelector('.professor-card.selected') && newState.professor) {
+            renderProfessorList([newState.professor]);
+        }
+    });
 }
