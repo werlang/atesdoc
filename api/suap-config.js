@@ -27,6 +27,10 @@ export default {
         }
     },
     bookSearch: {
-        url: (pid, semester) => `edu/professor/${pid}/?tab=disciplinas&ano-periodo=${semester}`,
+        // `edu/professor/${professorId}/?tab=disciplinas&ano-periodo=${semester}`
+        url: {
+            base: 'edu/professor',
+            query: 'tab=disciplinas&ano-periodo='
+        },
     }
 }

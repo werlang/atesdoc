@@ -1,7 +1,6 @@
 import puppeteer from 'puppeteer-core';
 import suapConfig from '../suap-config.js';
 import CustomError from '../helpers/error.js';
-import EventEmitter from 'events';
 
 export default class SUAPScraper {
 
@@ -9,7 +8,6 @@ export default class SUAPScraper {
         this.username = username || process.env.SUAP_USERNAME;
         this.password = password || process.env.SUAP_PASSWORD;
         this.chromePort = chromePort || process.env.CHROME_PORT || 3000;
-        this.emitter = new EventEmitter();
         this.connected = false;
         this.logged = false;
     }
@@ -55,10 +53,10 @@ export default class SUAPScraper {
         return this;
     }
 
-    async goto(url, confirmElement) {
+    async goto(url, confirmElement, reply) {
         try {
             if (!this.logged) {
-                this.emitter.emit('login', { username: this.username });
+                reply({ status: 'authenticating' });
                 await this.login();
             }
             await this.page.goto(url);
@@ -67,7 +65,7 @@ export default class SUAPScraper {
             this.connected = false;
             await this.connect();
             console.log('Reconnected to browser, trying to load page again...');
-            return await this.goto(url, confirmElement);
+            return await this.goto(url, confirmElement, reply);
         }
 
         if (confirmElement) {
@@ -78,7 +76,7 @@ export default class SUAPScraper {
                 if (err.name === 'TimeoutError') {
                     console.log('Timeout waiting for selector, trying to login again...');
                     this.logged = false;
-                    return await this.goto(url, confirmElement);
+                    return await this.goto(url, confirmElement, reply);
                 } else {
                     throw new CustomError(500, 'Error loading professor search results');
                 }
@@ -138,7 +136,7 @@ export default class SUAPScraper {
         }, serialized);
     }
 
-    async findProfessor(query) {
+    async findProfessor(query, reply) {
         if (!this.connected) {
             throw new CustomError(500, 'Not connected to browser. Call connect() first.');
         }
@@ -148,7 +146,9 @@ export default class SUAPScraper {
         query = new URLSearchParams(suapConfig.professorSearch.query).toString();
         const url = `${suapConfig.baseUrl}/${suapConfig.professorSearch.url}?${query}`;
         console.log(`Accessing URL: ${url}`);
-        await this.goto(url, suapConfig.professorSearch.ready);
+        await this.goto(url, suapConfig.professorSearch.ready, reply);
+
+        // Extract data
 
         const data = await this.evaluate((template) => {
             const professors = [];
@@ -171,12 +171,12 @@ export default class SUAPScraper {
         return data;
     }
 
-    async findBooks(professorId, semesters) {
+    async findBooks(professorId, semesters, reply) {
         if (!this.connected) {
             throw new CustomError(500, 'Not connected to browser. Call connect() first.');
         }
         return semesters.map(semester => {
-            const url = `${suapConfig.baseUrl}/${suapConfig.bookSearch.url(professorId, semester)}`;
+            const url = `${suapConfig.baseUrl}/${suapConfig.bookSearch.url.base}/${professorId}/?${suapConfig.bookSearch.url.query}${semester}`;
             return url;
         })
     }
