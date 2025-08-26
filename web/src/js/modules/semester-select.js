@@ -1,4 +1,5 @@
 import Form from "../components/form.js";
+import Toast from "../components/toast.js";
 
 export default function(wsserver, state) {
     const form = new Form(document.querySelector('form.semester-selection'));
@@ -8,6 +9,7 @@ export default function(wsserver, state) {
             return;
         }
 
+        renderSkeletonList();
         getBooks();
     });
 
@@ -79,14 +81,182 @@ export default function(wsserver, state) {
 
     async function getBooks() {
         let closeStream;
+        let processing = false;
+        let toast = null;
         await new Promise(async (resolve) => {
             closeStream = await wsserver.stream('get_books', {
                 semesters: state.get().semesters,
                 professorId: state.get().professor.id,
             }, message => {
                 console.log(new Date().toISOString(), message);
+
+                if (message.status === 'in queue' && message.position > 1) {
+                    if (toast) { toast.close(); }
+                    toast = Toast.info(`Outro processo está em andamento. Sua posição na fila: <strong>${message.position}.</strong>`, null);
+                    return;
+                }
+
+                if (message.position === 0) {
+                    if (toast) { toast.close(); }
+                    toast = Toast.success('Buscando diários...', null);
+                    processing = true;
+                    return;
+                }
+
+                if (!processing) return;
+
+                if (message.status === 'authenticating') {
+                    if (toast) { toast.close(); }
+                    toast = Toast.warning('Realizando autenticação no SUAP...', null);
+                    return;
+                }
+
+                if (message.error) {
+                    if (toast) { toast.close(); }
+                    toast = Toast.error(message.error);
+                    resolve(message.error);
+                    return;
+                }
+
+                if (message.books) {
+                    if (toast) { toast.close(); }
+                    renderBookList(message.books);
+                    resolve(message.books);
+                    return;
+                }
             });
         });
         closeStream();
+    }
+
+    const bookListContainer = document.querySelector('.book-list');
+
+    function renderSkeletonList(count = 5) {
+        bookListContainer.classList.remove('empty-state');
+        bookListContainer.innerHTML = `
+            <div class="list-header">
+                <h2>Carregando Diários...</h2>
+                <p>Aguarde enquanto buscamos os diários</p>
+            </div>
+        `;
+
+        const tableContainer = document.createElement('div');
+        tableContainer.classList.add('book-table-container');
+        
+        const table = document.createElement('table');
+        table.classList.add('book-table', 'skeleton');
+        
+        // Table header
+        table.innerHTML = `
+            <thead>
+                <tr>
+                    <th><i class="fa-solid fa-external-link"></i> Link</th>
+                    <th><i class="fa-solid fa-calendar"></i> Semestre</th>
+                    <th><i class="fa-solid fa-chalkboard-user"></i> Turma</th>
+                    <th><i class="fa-solid fa-book"></i> Componente Curricular</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        `;
+
+        // Create skeleton rows
+        const tbody = table.querySelector('tbody');
+        for (let i = 0; i < count; i++) {
+            const row = document.createElement('tr');
+            row.classList.add('skeleton-row');
+            row.innerHTML = `
+                <td><div class="skeleton-link"></div></td>
+                <td><div class="skeleton-text skeleton-semester"></div></td>
+                <td><div class="skeleton-text skeleton-class"></div></td>
+                <td><div class="skeleton-text skeleton-title"></div></td>
+            `;
+            tbody.appendChild(row);
+        }
+
+        tableContainer.appendChild(table);
+        bookListContainer.appendChild(tableContainer);
+
+        // Scroll to the results
+        bookListContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function renderBookList(books) {
+        // Handle empty results
+        if (!books || books.length === 0) {
+            bookListContainer.classList.add('empty-state');
+            bookListContainer.innerHTML = `
+                <div class="list-header">
+                    <h2>Nenhum Diário Encontrado</h2>
+                    <p>Não foram encontrados diários para os semestres selecionados.</p>
+                </div>
+            `;
+            return;
+        }
+
+        bookListContainer.classList.remove('empty-state');
+        bookListContainer.innerHTML = `
+            <div class="list-header">
+                <h2>Diários Encontrados</h2>
+                <p>Encontrados ${books.length} diário${books.length !== 1 ? 's' : ''} para os semestres selecionados</p>
+            </div>
+        `;
+
+        const tableContainer = document.createElement('div');
+        tableContainer.classList.add('book-table-container');
+        
+        const table = document.createElement('table');
+        table.classList.add('book-table');
+        
+        // Table header
+        table.innerHTML = `
+            <thead>
+                <tr>
+                    <th><i class="fa-solid fa-external-link"></i> Link</th>
+                    <th><i class="fa-solid fa-calendar"></i> Semestre</th>
+                    <th><i class="fa-solid fa-chalkboard-user"></i> Turma</th>
+                    <th><i class="fa-solid fa-book"></i> Componente Curricular</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        `;
+
+        const tbody = table.querySelector('tbody');
+
+        // Create book rows
+        books.forEach((book, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="link-cell">
+                    <a href="${book.link}" target="_blank" class="book-link" title="Abrir diário em nova aba">
+                        <i class="fa-solid fa-external-link"></i>
+                        <span>Diário</span>
+                    </a>
+                </td>
+                <td class="semester-cell">
+                    <span class="semester-badge">${book.semester}</span>
+                </td>
+                <td class="class-cell">
+                    <span class="class-name">${book.class}</span>
+                </td>
+                <td class="title-cell">
+                    <span class="book-title">${book.book}</span>
+                </td>
+            `;
+
+            // Add alternating row styling
+            if (index % 2 === 1) {
+                row.classList.add('alternate');
+            }
+
+            tbody.appendChild(row);
+        });
+
+        tableContainer.appendChild(table);
+        bookListContainer.appendChild(tableContainer);
+
+        // Scroll to the results
+        bookListContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 }

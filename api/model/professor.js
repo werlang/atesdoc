@@ -3,12 +3,13 @@ import suapConfig from '../suap-config.js';
 
 export default class Professor {
 
-    constructor({ id, name, email, siape, document: cpf }) {
+    constructor({ id, name, email, siape, cpf, picture }) {
         this.id = id;
         this.name = name;
         this.email = email;
         this.siape = siape;
         this.cpf = cpf;
+        this.picture = picture;
         this.books = [];
         this.semesters = [];
     }
@@ -48,7 +49,7 @@ export default class Professor {
             return professors;
         }, suapConfig.professorSearch);
         console.log(data);
-        return data;
+        return data.map(prof => new Professor(prof));
     }
 
 }

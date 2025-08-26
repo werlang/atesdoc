@@ -32,5 +32,14 @@ export default {
             base: 'edu/professor',
             query: 'tab=disciplinas&ano-periodo='
         },
+        ready: '#form_periodo_letivo',
+        rows: '.box table tr',
+        data: {
+            semester: (tr) => tr.querySelectorAll('td')?.[0]?.textContent.trim(),
+            link: (tr) => tr.querySelectorAll('td')?.[1]?.querySelector('a')?.href,
+            book: (tr) => tr.querySelectorAll('td')?.[1]?.textContent.trim(),
+            class: (tr) => tr.querySelectorAll('td')?.[2]?.textContent.trim(),
+        }
+        
     }
 }

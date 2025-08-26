@@ -8,7 +8,10 @@ new Route('get_professors', async (payload, reply) => {
 });
 
 new Route('get_books', async (payload, reply) => {
-    const books = await Book.fetchForProfessor(payload.professorId, payload.semesters, reply);
+    const books = await Book.fetch({
+        professor: payload.professorId,
+        semesters: payload.semesters,
+    }, reply);
     return { books };
 });
 
