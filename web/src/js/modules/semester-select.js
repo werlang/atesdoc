@@ -4,8 +4,9 @@ import Toast from "../components/toast.js";
 export default function(wsserver, state) {
     const form = new Form(document.querySelector('form.semester-selection'));
     form.submit(async () => {
+        state.update({ step: 3 });
         renderSkeletonList();
-        await getBooks();
+        getBooks();
     });
 
     form.getButton('prev-semester-btn').click(() => {
@@ -14,7 +15,18 @@ export default function(wsserver, state) {
 
     state.onUpdate((newState) => {
         form.get().querySelector('.form-header .professor-name').textContent = newState.professor?.name;
-        renderBookList(newState.books);
+
+        if (!newState.semesters.length) {
+            newState.semesters = firstFour.map(sem => `${sem.year}.${sem.semester}`);
+            state.update({ semesters: newState.semesters });
+            return;
+        };
+        const formattedSemesters = newState.semesters.map(formatSemester);
+        semesterList.forEach(sem => {
+            const found = formattedSemesters.find(s => s.year === sem.year && s.semester === sem.semester);
+            sem.checked = !!found;
+        });
+        renderSemesterList();
     });
 
     function createSemesterList() {
@@ -69,78 +81,13 @@ export default function(wsserver, state) {
 
     renderSemesterList();
 
-    state.onUpdate((newState) => {
-        if (!newState.semesters.length) {
-            newState.semesters = firstFour.map(sem => `${sem.year}.${sem.semester}`);
-            state.update({ semesters: newState.semesters });
-            return;
-        };
-        const formattedSemesters = newState.semesters.map(formatSemester);
-        semesterList.forEach(sem => {
-            const found = formattedSemesters.find(s => s.year === sem.year && s.semester === sem.semester);
-            sem.checked = !!found;
-        });
-        renderSemesterList();
-    });
-
-    async function getBooks() {
-        let closeStream;
-        let processing = false;
-        let toast = null;
-        await new Promise(async (resolve) => {
-            closeStream = await wsserver.stream('get_books', {
-                semesters: state.get().semesters,
-                professorId: state.get().professor.id,
-            }, message => {
-                console.log(new Date().toISOString(), message);
-
-                if (message.status === 'in queue' && message.position > 1) {
-                    if (toast) { toast.close(); }
-                    toast = Toast.info(`Outro processo está em andamento. Sua posição na fila: <strong>${message.position}.</strong>`, null);
-                    return;
-                }
-
-                if (message.position === 0) {
-                    if (toast) { toast.close(); }
-                    toast = Toast.success('Buscando diários...', null);
-                    processing = true;
-                    return;
-                }
-
-                if (!processing) return;
-
-                if (message.status === 'authenticating') {
-                    if (toast) { toast.close(); }
-                    toast = Toast.warning('Realizando autenticação no SUAP...', null);
-                    return;
-                }
-
-                if (message.error) {
-                    if (toast) { toast.close(); }
-                    toast = Toast.error(message.error);
-                    resolve(message.error);
-                    return;
-                }
-
-                if (message.books) {
-                    if (toast) { toast.close(); }
-                    const books = message.books.map(b => ({
-                        ...b,
-                        checked: true,
-                    }));
-                    renderBookList(books, true);
-                    state.update({ books });
-                    resolve(books);
-                    return;
-                }
-            });
-        });
-        closeStream();
-    }
-
-    const bookListContainer = document.querySelector('.book-list');
-
     function renderSkeletonList(count = 5) {
+        const existingSummary = document.querySelector('.progress-summary');
+        if (existingSummary) {
+            existingSummary.remove();
+        }
+        
+        const bookListContainer = document.querySelector('.book-list');
         bookListContainer.classList.remove('empty-state');
         bookListContainer.innerHTML = `
             <div class="list-header">
@@ -192,100 +139,57 @@ export default function(wsserver, state) {
         bookListContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    function renderBookList(books, scroll = false) {
-        // Handle empty results
-        if (!books || books.length === 0) {
-            bookListContainer.classList.add('empty-state');
-            bookListContainer.innerHTML = `
-                <div class="list-header">
-                    <h2>Nenhum Diário Encontrado</h2>
-                    <p>Não foram encontrados diários para os semestres selecionados.</p>
-                </div>
-            `;
-            return;
-        }
+    async function getBooks() {
+        let closeStream;
+        let processing = false;
+        let toast = null;
+        await new Promise(async (resolve) => {
+            closeStream = await wsserver.stream('get_books', {
+                semesters: state.get().semesters,
+                professorId: state.get().professor.id,
+            }, message => {
+                console.log(new Date().toISOString(), message);
 
-        bookListContainer.classList.remove('empty-state');
-        bookListContainer.innerHTML = `
-            <div class="list-header">
-                <h2>Diários Encontrados</h2>
-                <p>Encontrados ${books.length} diário${books.length !== 1 ? 's' : ''} para os semestres selecionados</p>
-            </div>
-        `;
-
-        const tableContainer = document.createElement('div');
-        tableContainer.classList.add('book-table-container');
-        
-        const table = document.createElement('table');
-        table.classList.add('book-table');
-        
-        // Table header
-        table.innerHTML = `
-            <thead>
-                <tr>
-                    <th></th>
-                    <th><i class="fa-solid fa-calendar"></i> Semestre</th>
-                    <th><i class="fa-solid fa-chalkboard-user"></i> Turma</th>
-                    <th><i class="fa-solid fa-book"></i> Componente Curricular</th>
-                    <th><i class="fa-solid fa-external-link"></i> Link</th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        `;
-
-        const tbody = table.querySelector('tbody');
-
-        // Create book rows
-        books.forEach((book, index) => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td class="check-cell">
-                    <input type="checkbox" class="book-checkbox" ${book.checked ? 'checked' : ''}>
-                </td>
-                <td class="semester-cell">
-                    <span class="semester-badge">${book.semester}</span>
-                </td>
-                <td class="class-cell">
-                    <span class="class-name">${book.class}</span>
-                </td>
-                <td class="title-cell">
-                    <span class="book-title">${book.book}</span>
-                </td>
-                <td class="link-cell">
-                    <a href="${book.link}" target="_blank" class="book-link" title="Abrir diário em nova aba">
-                        <i class="fa-solid fa-external-link"></i>
-                        <span>Diário</span>
-                    </a>
-                </td>
-            `;
-
-            // Add selected class for checked checkboxes
-            const checkbox = row.querySelector('.book-checkbox');
-            if (checkbox.checked) {
-                row.classList.add('selected');
-            }
-
-            // Add event listener to toggle selected class
-            checkbox.addEventListener('change', () => {
-                if (checkbox.checked) {
-                    row.classList.add('selected');
-                } else {
-                    row.classList.remove('selected');
+                if (message.status === 'in queue' && message.position > 1) {
+                    if (toast) { toast.close(); }
+                    toast = Toast.info(`Outro processo está em andamento. Sua posição na fila: <strong>${message.position}.</strong>`, null);
+                    return;
                 }
 
-                books[index].checked = checkbox.checked;
-                state.update({ books });
+                if (message.position === 0) {
+                    if (toast) { toast.close(); }
+                    toast = Toast.success('Buscando diários...', null);
+                    processing = true;
+                    return;
+                }
+
+                if (!processing) return;
+
+                if (message.status === 'authenticating') {
+                    if (toast) { toast.close(); }
+                    toast = Toast.warning('Realizando autenticação no SUAP...', null);
+                    return;
+                }
+
+                if (message.error) {
+                    if (toast) { toast.close(); }
+                    toast = Toast.error(message.error);
+                    resolve(message.error);
+                    return;
+                }
+
+                if (message.books) {
+                    if (toast) { toast.close(); }
+                    const books = message.books.map(b => ({
+                        ...b,
+                        checked: true,
+                    }));
+                    state.update({ books });
+                    resolve(books);
+                    return;
+                }
             });
-
-            tbody.appendChild(row);
         });
-
-        tableContainer.appendChild(table);
-        bookListContainer.appendChild(tableContainer);
-
-        if (!scroll) return;
-        // Scroll to the results
-        bookListContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        closeStream();
     }
 }

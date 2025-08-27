@@ -3,6 +3,7 @@ import Toast from "./components/toast.js";
 import professorSearch from "./modules/professor-search.js";
 import semesterSelect from "./modules/semester-select.js";
 import StateManager from "./helpers/state.js";
+import bookSelect from "./modules/book-select.js";
 
 import '../less/index.less';
 
@@ -41,7 +42,7 @@ const state = new StateManager({
         step: 1,
         professor: null,
         semesters: [],
-        books: [],
+        books: null,
     }
 });
 state.onUpdate((newState) => {
@@ -50,5 +51,6 @@ state.onUpdate((newState) => {
 
 professorSearch(wsserver, state);
 semesterSelect(wsserver, state);
+bookSelect(wsserver, state);
 
 state.alert();

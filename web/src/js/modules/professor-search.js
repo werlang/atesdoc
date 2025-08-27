@@ -162,7 +162,7 @@ export default function(wsserver, state) {
             }
 
             if (data.id != state.get().professor?.id) {
-                newStateData.books = [];
+                newStateData.books = null;
             }
 
             state.update(newStateData);
