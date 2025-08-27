@@ -4,16 +4,16 @@ import Toast from "../components/toast.js";
 export default function(wsserver, state) {
     const form = new Form(document.querySelector('form.semester-selection'));
 
-    let currentSemesters = null;
+    let currentSelection = null;
 
     form.submit(async () => {
         state.update({ step: 3 });
-
-        const stateSemesters = state.get().semesters || [];
-        if (currentSemesters != stateSemesters) {
+;
+        if (!currentSelection || currentSelection.semesters != state.get().semesters || currentSelection.professor != state.get().professor) {
+            // Show skeleton cards immediately when form is submitted
             renderSkeletonList();
             getBooks();
-            currentSemesters = stateSemesters;
+            currentSelection = { semesters: state.get().semesters, professor: state.get().professor };
         }
     });
 
@@ -45,9 +45,9 @@ export default function(wsserver, state) {
             form.getButton('search-books-btn').disable(false);
         }
         else {
-            form.getButton('search-books-btn').enable(false);
-            if (currentSemesters === null) {
-                currentSemesters = newState.semesters;
+            form.getButton('search-books-btn').enable();
+            if (currentSelection === null) {
+                currentSelection = { semesters: newState.semesters, professor: newState.professor };
             }
         }
     });

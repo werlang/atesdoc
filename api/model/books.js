@@ -56,7 +56,7 @@ export default class Book {
     
         console.log(books);
         return books.map(book => new Book({
-            id: book.link.split('/').slice(-2, -1)?.[0],
+            id: book.link.match(/[meu_]{0,1}diario\/(\d+)\//)?.[1],
             professor,
             semester: book.semester,
             link: book.link,
