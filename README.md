@@ -3,13 +3,15 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Docker](https://img.shields.io/badge/Docker-Supported-blue.svg)](https://www.docker.com/)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/JavaScript-ES6+-yellow.svg)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 
-A comprehensive web application for generating teaching certificates from SUAP (Sistema Unificado de Administração Pública) data for IFSUL (Instituto Federal Sul-rio-grandense). This tool automates the process of scraping professor data and generating professional teaching documentation.
+A comprehensive web application for generating teaching certificates from SUAP (Sistema Unificado de Administração Pública) data for IFSUL (Instituto Federal Sul-rio-grandense). This tool automates the process of scraping professor data and generating professional teaching documentation through a modern, intuitive 3-step wizard interface.
 
 ## 📋 Table of Contents
 
 - [Features](#-features)
 - [Architecture](#-architecture)
+- [User Interface](#-user-interface)
 - [Prerequisites](#-prerequisites)
 - [Installation](#-installation)
 - [Configuration](#-configuration)
@@ -22,14 +24,29 @@ A comprehensive web application for generating teaching certificates from SUAP (
 
 ## ✨ Features
 
-- **Web Interface**: Modern, responsive frontend for easy interaction
-- **Real-time Processing**: WebSocket-based communication for live updates
-- **Queue Management**: Efficient task queuing system for handling multiple requests
-- **Professor Search**: Advanced search functionality for finding professors in SUAP
+### Core Functionality
+- **3-Step Wizard Interface**: Intuitive step-by-step process for generating certificates
+- **Professor Search**: Advanced search by name, CPF, or SIAPE with real-time results
+- **Semester Management**: Dynamic semester selection with visual feedback
+- **Diary Selection**: Interactive table with modern toggle switches for diary selection
 - **Document Generation**: Automated generation of teaching certificates and reports
-- **Multi-semester Support**: Process data across multiple academic semesters
-- **Docker Support**: Containerized deployment for easy setup and scaling
+- **Real-time Processing**: WebSocket-based communication for live updates and queue management
+
+### Modern UI/UX
+- **Responsive Design**: Mobile-first approach with Material Design 3 principles
+- **Beautiful Animations**: Smooth transitions, skeleton loading, and micro-interactions
+- **Progress Tracking**: Visual step indicators and floating progress summaries
+- **Toast Notifications**: Real-time feedback for user actions
+- **Glassmorphism Effects**: Modern UI with backdrop blur and transparency
+- **Dark/Light Themes**: Earth-tone color palette with accessibility considerations
+
+### Technical Features
+- **Microservices Architecture**: Separate web, API, and scraper services
+- **Queue Management**: Efficient task queuing system for handling multiple requests
+- **Containerized Deployment**: Docker support for easy setup and scaling
 - **Headless Browser**: Puppeteer-based scraping with Chrome integration
+- **WebSocket Communication**: Real-time updates and streaming responses
+- **State Management**: Centralized state with reactive UI updates
 
 ## 🏗 Architecture
 
@@ -40,21 +57,55 @@ The application follows a microservices architecture with three main components:
 │   Web Frontend  │    │   API Server    │    │   Scraper       │
 │   (Express.js)  │◄──►│   (Node.js)     │◄──►│   (Puppeteer)   │
 │   Port: 80      │    │   Port: 8080    │    │   Background    │
+│                 │    │   WebSocket     │    │   Service       │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
                               │
                               ▼
                        ┌─────────────────┐
                        │   Browserless   │
                        │   Chrome        │
+                       │   Port: 9222    │
                        └─────────────────┘
 ```
 
 ### Components
 
-- **Web**: Frontend application with Webpack, Less, and modern JavaScript
-- **API**: RESTful API with WebSocket support for real-time communication
-- **Scraper**: Automated data extraction from SUAP using Puppeteer
-- **Chrome**: Browserless Chrome instance for headless browsing
+- **Web**: Frontend application with Webpack, LESS, and modern JavaScript ES6+ modules
+- **API**: RESTful API with WebSocket support for real-time communication and queue management
+- **Scraper**: Automated data extraction from SUAP using Puppeteer with error recovery
+- **Chrome**: Browserless Chrome instance for headless browsing and PDF generation
+
+## 🎨 User Interface
+
+### 3-Step Wizard Process
+
+#### Step 1: Professor Search
+- **Search Input**: Real-time search by name, CPF, or SIAPE
+- **Professor Cards**: Beautiful cards with avatars, contact information, and selection
+- **Skeleton Loading**: Smooth loading animations while searching
+- **Error Handling**: Graceful error states with helpful messaging
+
+#### Step 2: Semester & Diary Selection
+- **Semester Grid**: Visual checkbox grid for semester selection
+- **Interactive Table**: Modern table with toggle switches for individual diary selection
+- **Row Highlighting**: Selected rows with visual enhancements and animations
+- **Progress Summary**: Floating action card showing selection count and proceed button
+
+#### Step 3: Document Generation
+- **Configuration Options**: Final settings and document customization
+- **Progress Tracking**: Real-time generation progress with status updates
+- **Download Management**: Easy access to generated documents
+
+### Design System
+
+- **Color Palette**: Earth-tone colors inspired by nature
+  - Primary: Forest Green (#5b775a)
+  - Secondary: Warm Brown (#906442) 
+  - Background: Warm Cream (#faf7f4)
+- **Typography**: Roboto font family for modern readability
+- **Spacing**: Consistent 8px grid system
+- **Animations**: Material Design cubic-bezier easing
+- **Components**: Modular design with reusable components
 
 ## 🔧 Prerequisites
 
@@ -155,57 +206,45 @@ module.exports = {
 
 ### Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `NODE_ENV` | Environment mode | `development` |
-| `SUAP_USERNAME` | SUAP login username | `user` |
-| `SUAP_PASSWORD` | SUAP login password | `password` |
+| Variable | Description | Default | Required |
+|----------|-------------|---------|----------|
+| `NODE_ENV` | Environment mode | `development` | No |
+| `SUAP_USERNAME` | SUAP login username | - | Yes |
+| `SUAP_PASSWORD` | SUAP login password | - | Yes |
 
 ## 🖥 Usage
 
-### Web Interface
+### Web Interface Workflow
 
-1. Navigate to http://localhost in your browser
-2. Use the professor search to find professors by name
-3. Select semesters and configure options
-4. Generate teaching certificates and reports
+1. **Navigate to http://localhost** in your browser
+2. **Step 1 - Search Professor**: 
+   - Enter professor name, CPF, or SIAPE in the search field
+   - Select the desired professor from the results
+3. **Step 2 - Select Semesters & Diaries**:
+   - Choose which semesters to include
+   - Use toggle switches to select/deselect specific diaries
+   - Review selection in the progress summary
+4. **Step 3 - Generate Documents**:
+   - Configure final options
+   - Generate and download teaching certificates
 
-### API Endpoints
+### Key UI Features
 
-#### WebSocket Events
-
-- **`get_professors`**: Search for professors
-  ```javascript
-  {
-    query: "Professor Name"
-  }
-  ```
-
-#### RESTful Endpoints
-
-- `GET /api/health` - Health check
-- `GET /api/semesters` - Get available semesters
-- `POST /api/generate` - Generate documents
-
-### Standalone Scraper
-
-For batch processing, run the scraper directly:
-
-```bash
-cd scraper
-node app.js
-```
-
-Generated documents will be saved in the `scraper/document/` directory.
+- **Real-time Search**: Instant results as you type
+- **Progress Indicators**: Visual feedback throughout the process
+- **Mobile Responsive**: Optimized for all device sizes
+- **Accessibility**: Keyboard navigation and screen reader support
+- **Error Recovery**: Graceful handling of network issues and errors
 
 ## 📖 API Documentation
 
 ### WebSocket Communication
 
-The API uses WebSocket for real-time communication. Connect to `ws://localhost:8080` and listen for these events:
+The API uses WebSocket for real-time communication. Connect to `ws://localhost:8080`:
 
+#### Professor Search
 ```javascript
-// Client request
+// Search for professors
 ws.send(JSON.stringify({
     event: 'get_professors',
     data: { query: 'Pablo' }
@@ -218,7 +257,7 @@ ws.send(JSON.stringify({
 }
 
 {
-    status: 'processing',
+    status: 'processing', 
     position: 0
 }
 
@@ -226,12 +265,45 @@ ws.send(JSON.stringify({
     professors: [
         {
             id: 1335,
-            name: "Pablo Werlang",
-            department: "TI"
+            name: "Pablo Werlang", 
+            cpf: "***.***.***-**",
+            siape: "1234567",
+            email: "pablo@example.com",
+            picture: "base64_image_data"
         }
     ]
 }
 ```
+
+#### Diary/Book Search
+```javascript
+// Get diaries for selected semesters
+ws.send(JSON.stringify({
+    event: 'get_books',
+    data: { 
+        professorId: 1335,
+        semesters: ['2024.1', '2024.2']
+    }
+}));
+
+// Server response
+{
+    books: [
+        {
+            semester: "2024.1",
+            class: "TEC.123",
+            book: "Algoritmos e Programação",
+            link: "https://suap.example.com/diary/123"
+        }
+    ]
+}
+```
+
+### RESTful Endpoints
+
+- `GET /api/health` - Health check and service status
+- `GET /api/semesters` - Get available academic semesters
+- `POST /api/generate` - Generate documents from selected data
 
 ## 🛠 Development
 
@@ -239,21 +311,56 @@ ws.send(JSON.stringify({
 
 ```
 ├── api/                    # API server
-│   ├── helpers/           # Utility classes
-│   ├── model/            # Data models
-│   ├── scraper/          # Scraping logic
-│   └── app.js            # Main API application
-├── scraper/              # Standalone scraper
-│   ├── document/         # Generated documents
-│   ├── template/         # HTML templates
-│   └── app.js            # Main scraper application
-├── web/                  # Frontend application
-│   ├── src/              # Source code
-│   │   ├── js/           # JavaScript modules
-│   │   └── less/         # Stylesheets
-│   ├── view/             # HTML templates
-│   └── app.js            # Express server
-└── compose.yaml          # Docker composition
+│   ├── helpers/           # Utility classes (Queue, WSServer, Router)
+│   ├── model/             # Data models (Professor, Semester, Books)
+│   └── app.js             # Main API application
+├── scraper/               # Standalone scraper service
+│   ├── document/          # Generated documents output
+│   ├── template/          # HTML templates for documents
+│   └── app.js             # Main scraper application
+├── web/                   # Frontend application
+│   ├── src/               # Source code
+│   │   ├── js/            # JavaScript modules and components
+│   │   │   ├── components/ # Reusable UI components
+│   │   │   ├── modules/   # Feature-specific modules
+│   │   │   └── helpers/   # Utility functions
+│   │   └── less/          # LESS stylesheets
+│   │       ├── components/ # Component styles
+│   │       └── modules/   # Module-specific styles
+│   ├── view/              # HTML templates (Mustache)
+│   └── app.js             # Express server
+└── compose.yaml           # Docker composition
+```
+
+### Frontend Architecture
+
+#### State Management
+```javascript
+// Centralized state with reactive updates
+state.update({ 
+    step: 2, 
+    professor: selectedProfessor,
+    books: selectedBooks 
+});
+
+// Listen for state changes
+state.onUpdate((newState) => {
+    if (newState.step === 3) {
+        renderDocumentGeneration();
+    }
+});
+```
+
+#### Component Pattern
+```javascript
+// Reusable components
+import Form from '../components/form.js';
+import Toast from '../components/toast.js';
+
+// Module pattern
+export default function(wsserver, state) {
+    // Module initialization
+}
 ```
 
 ### Development Commands
@@ -262,22 +369,27 @@ ws.send(JSON.stringify({
 # Start development environment
 docker-compose up
 
-# Run tests
-npm test
+# Frontend development with hot reload
+cd web && npm run development
+
+# API development with nodemon
+cd api && npm run development
 
 # Build for production
 docker-compose -f compose.prod.yaml up --build
 
 # View logs
-docker-compose logs -f
+docker-compose logs -f [service-name]
 ```
 
-### Code Style
+### Code Style Guidelines
 
-- Use ES6+ features and modules
-- Follow Airbnb JavaScript style guide
-- Use meaningful variable and function names
-- Add comments for complex logic
+- **ES6+ Modules**: Use import/export syntax consistently
+- **Async/Await**: Proper Promise handling with error boundaries
+- **Component Architecture**: Modular, reusable components
+- **Responsive Design**: Mobile-first CSS with proper breakpoints
+- **Accessibility**: ARIA labels, keyboard navigation, semantic HTML
+- **Performance**: Efficient DOM manipulation and event handling
 
 ## 🤝 Contributing
 
@@ -289,12 +401,21 @@ We welcome contributions! Please follow these steps:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
+### Development Guidelines
+
+- Follow the existing code style and patterns
+- Add appropriate comments for complex logic
+- Ensure responsive design works on all devices
+- Test WebSocket communication thoroughly
+- Update documentation for new features
+
 ### Issues
 
 Please use the [GitHub Issues](https://github.com/werlang/SUAP-Teacher-Scraper/issues) page to:
-- Report bugs
-- Request features
-- Ask questions
+- Report bugs with detailed reproduction steps
+- Request new features with use case descriptions
+- Ask questions about implementation
+- Suggest UI/UX improvements
 
 ## 📄 License
 
@@ -307,9 +428,19 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- IFRN for providing the SUAP system
+- IFSUL for providing the SUAP system access
 - The open-source community for the tools and libraries used
 - Contributors and users who help improve this project
+- Material Design team for design inspiration
+
+## 🔮 Future Enhancements
+
+- **Batch Processing**: Multiple professor processing simultaneously
+- **Advanced Filtering**: More granular diary selection options
+- **Export Formats**: Additional document formats (Excel, CSV)
+- **User Preferences**: Saved settings and preferences
+- **Analytics Dashboard**: Usage statistics and reporting
+- **Multi-language Support**: Portuguese and English interfaces
 
 ---
 
