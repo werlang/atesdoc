@@ -183,4 +183,3 @@ export default function(wsserver, state) {
 
 // TODO: a way to go back to step 2
 // TODO: fetch inside books and go to step 4.
-// TODO: move thing step 3 css to new step 3 css file.
