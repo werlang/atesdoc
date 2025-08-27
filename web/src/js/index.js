@@ -40,7 +40,8 @@ const state = new StateManager({
     defaults: {
         step: 1,
         professor: null,
-        semesters: []
+        semesters: [],
+        books: [],
     }
 });
 state.onUpdate((newState) => {

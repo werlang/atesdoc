@@ -156,7 +156,16 @@ export default function(wsserver, state) {
                 `;
             });
 
-            state.update({ step: 2, professor: data });
+            const newStateData = {
+                step: 2,
+                professor: data,
+            }
+
+            if (data.id != state.get().professor?.id) {
+                newStateData.books = [];
+            }
+
+            state.update(newStateData);
         });
 
         return card;

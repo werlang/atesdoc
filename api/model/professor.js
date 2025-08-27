@@ -10,8 +10,6 @@ export default class Professor {
         this.siape = siape;
         this.cpf = cpf;
         this.picture = picture;
-        this.books = [];
-        this.semesters = [];
     }
 
     /**

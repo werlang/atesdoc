@@ -3,18 +3,18 @@ import Toast from "../components/toast.js";
 
 export default function(wsserver, state) {
     const form = new Form(document.querySelector('form.semester-selection'));
-    form.submit((_, button) => {
-        if (button.get().id === 'prev-semester-btn') {
-            state.update({ step: 1 });
-            return;
-        }
-
+    form.submit(async () => {
         renderSkeletonList();
-        getBooks();
+        await getBooks();
+    });
+
+    form.getButton('prev-semester-btn').click(() => {
+        state.update({ step: 1 });
     });
 
     state.onUpdate((newState) => {
         form.get().querySelector('.form-header .professor-name').textContent = newState.professor?.name;
+        renderBookList(newState.books);
     });
 
     function createSemesterList() {
@@ -70,7 +70,11 @@ export default function(wsserver, state) {
     renderSemesterList();
 
     state.onUpdate((newState) => {
-        if (!newState.semesters.length) return;
+        if (!newState.semesters.length) {
+            newState.semesters = firstFour.map(sem => `${sem.year}.${sem.semester}`);
+            state.update({ semesters: newState.semesters });
+            return;
+        };
         const formattedSemesters = newState.semesters.map(formatSemester);
         semesterList.forEach(sem => {
             const found = formattedSemesters.find(s => s.year === sem.year && s.semester === sem.semester);
@@ -120,8 +124,13 @@ export default function(wsserver, state) {
 
                 if (message.books) {
                     if (toast) { toast.close(); }
-                    renderBookList(message.books);
-                    resolve(message.books);
+                    const books = message.books.map(b => ({
+                        ...b,
+                        checked: true,
+                    }));
+                    renderBookList(books, true);
+                    state.update({ books });
+                    resolve(books);
                     return;
                 }
             });
@@ -150,10 +159,11 @@ export default function(wsserver, state) {
         table.innerHTML = `
             <thead>
                 <tr>
-                    <th><i class="fa-solid fa-external-link"></i> Link</th>
+                    <th></th>
                     <th><i class="fa-solid fa-calendar"></i> Semestre</th>
                     <th><i class="fa-solid fa-chalkboard-user"></i> Turma</th>
                     <th><i class="fa-solid fa-book"></i> Componente Curricular</th>
+                    <th><i class="fa-solid fa-external-link"></i> Link</th>
                 </tr>
             </thead>
             <tbody>
@@ -166,10 +176,11 @@ export default function(wsserver, state) {
             const row = document.createElement('tr');
             row.classList.add('skeleton-row');
             row.innerHTML = `
-                <td><div class="skeleton-link"></div></td>
+                <td><div class="skeleton-checkbox"></div></td>
                 <td><div class="skeleton-text skeleton-semester"></div></td>
                 <td><div class="skeleton-text skeleton-class"></div></td>
                 <td><div class="skeleton-text skeleton-title"></div></td>
+                <td><div class="skeleton-link"></div></td>
             `;
             tbody.appendChild(row);
         }
@@ -181,7 +192,7 @@ export default function(wsserver, state) {
         bookListContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    function renderBookList(books) {
+    function renderBookList(books, scroll = false) {
         // Handle empty results
         if (!books || books.length === 0) {
             bookListContainer.classList.add('empty-state');
@@ -212,10 +223,11 @@ export default function(wsserver, state) {
         table.innerHTML = `
             <thead>
                 <tr>
-                    <th><i class="fa-solid fa-external-link"></i> Link</th>
+                    <th></th>
                     <th><i class="fa-solid fa-calendar"></i> Semestre</th>
                     <th><i class="fa-solid fa-chalkboard-user"></i> Turma</th>
                     <th><i class="fa-solid fa-book"></i> Componente Curricular</th>
+                    <th><i class="fa-solid fa-external-link"></i> Link</th>
                 </tr>
             </thead>
             <tbody>
@@ -228,11 +240,8 @@ export default function(wsserver, state) {
         books.forEach((book, index) => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td class="link-cell">
-                    <a href="${book.link}" target="_blank" class="book-link" title="Abrir diário em nova aba">
-                        <i class="fa-solid fa-external-link"></i>
-                        <span>Diário</span>
-                    </a>
+                <td class="check-cell">
+                    <input type="checkbox" class="book-checkbox" ${book.checked ? 'checked' : ''}>
                 </td>
                 <td class="semester-cell">
                     <span class="semester-badge">${book.semester}</span>
@@ -243,12 +252,31 @@ export default function(wsserver, state) {
                 <td class="title-cell">
                     <span class="book-title">${book.book}</span>
                 </td>
+                <td class="link-cell">
+                    <a href="${book.link}" target="_blank" class="book-link" title="Abrir diário em nova aba">
+                        <i class="fa-solid fa-external-link"></i>
+                        <span>Diário</span>
+                    </a>
+                </td>
             `;
 
-            // Add alternating row styling
-            if (index % 2 === 1) {
-                row.classList.add('alternate');
+            // Add selected class for checked checkboxes
+            const checkbox = row.querySelector('.book-checkbox');
+            if (checkbox.checked) {
+                row.classList.add('selected');
             }
+
+            // Add event listener to toggle selected class
+            checkbox.addEventListener('change', () => {
+                if (checkbox.checked) {
+                    row.classList.add('selected');
+                } else {
+                    row.classList.remove('selected');
+                }
+
+                books[index].checked = checkbox.checked;
+                state.update({ books });
+            });
 
             tbody.appendChild(row);
         });
@@ -256,6 +284,7 @@ export default function(wsserver, state) {
         tableContainer.appendChild(table);
         bookListContainer.appendChild(tableContainer);
 
+        if (!scroll) return;
         // Scroll to the results
         bookListContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
