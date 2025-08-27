@@ -3,20 +3,33 @@ import Toast from "../components/toast.js";
 
 export default function(wsserver, state) {
     const form = new Form(document.querySelector('form.semester-selection'));
+
+    let currentSemesters = null;
+
     form.submit(async () => {
         state.update({ step: 3 });
-        renderSkeletonList();
-        getBooks();
+
+        const stateSemesters = state.get().semesters || [];
+        if (currentSemesters != stateSemesters) {
+            renderSkeletonList();
+            getBooks();
+            currentSemesters = stateSemesters;
+        }
     });
 
     form.getButton('prev-semester-btn').click(() => {
         state.update({ step: 1 });
     });
 
+    function formatSemester(text) {
+        const [year, semester] = text.split(/[\.\/]/).map(Number);
+        return { year, semester, checked: true };
+    }
+
     state.onUpdate((newState) => {
         form.get().querySelector('.form-header .professor-name').textContent = newState.professor?.name;
 
-        if (!newState.semesters.length) {
+        if (newState.semesters === null) {
             newState.semesters = firstFour.map(sem => `${sem.year}.${sem.semester}`);
             state.update({ semesters: newState.semesters });
             return;
@@ -27,6 +40,16 @@ export default function(wsserver, state) {
             sem.checked = !!found;
         });
         renderSemesterList();
+
+        if (newState.semesters?.length === 0) {
+            form.getButton('search-books-btn').disable(false);
+        }
+        else {
+            form.getButton('search-books-btn').enable(false);
+            if (currentSemesters === null) {
+                currentSemesters = newState.semesters;
+            }
+        }
     });
 
     function createSemesterList() {
@@ -50,11 +73,6 @@ export default function(wsserver, state) {
 
     const semesterSelectContainer = document.querySelector('.semester-list');
     const semesterList = createSemesterList();
-
-    function formatSemester(text) {
-        const [year, semester] = text.split(/[\.\/]/).map(Number);
-        return { year, semester, checked: true };
-    }
 
     function renderSemesterList() {
         semesterSelectContainer.innerHTML = '';

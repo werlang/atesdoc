@@ -134,18 +134,30 @@ export default function(wsserver, state) {
                         <p><span class="selected-count">${selectedBooks.length}</span> de ${books.length} diários selecionados</p>
                     </div>
                 </div>
-                <button class="proceed-btn" ${selectedBooks.length === 0 ? 'disabled' : ''}>
-                    <i class="fa-solid fa-arrow-right"></i>
-                    <span>Gerar Atestado</span>
-                </button>
+                <div class="summary-actions">
+                    <button class="back-btn">
+                        <i class="fa-solid fa-arrow-left"></i>
+                        <span>Voltar</span>
+                    </button>
+                    <button class="proceed-btn" ${selectedBooks.length === 0 ? 'disabled' : ''}>
+                        <i class="fa-solid fa-arrow-right"></i>
+                        <span>Gerar Atestado</span>
+                    </button>
+                </div>
             </div>
         `;
 
-        // Add click handler for proceed button
+        // Add click handlers for buttons
         const proceedBtn = summaryContainer.querySelector('.proceed-btn');
+        const backBtn = summaryContainer.querySelector('.back-btn');
+        
         proceedBtn.addEventListener('click', () => {
             if (selectedBooks.length === 0) return;
-            state.update({ step: 3, });
+            state.update({ step: 4, });
+        });
+        
+        backBtn.addEventListener('click', () => {
+            state.update({ step: 2 });
         });
 
         // Insert after the book list container
