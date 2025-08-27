@@ -40,6 +40,12 @@ export default {
             book: (tr) => tr.querySelectorAll('td')?.[1]?.textContent.trim(),
             class: (tr) => tr.querySelectorAll('td')?.[2]?.textContent.trim(),
         }
-        
+    },
+    bookDetails: {
+        // `edu/registrar_chamada/${bookId}/${period}/`
+        url: 'edu/registrar_chamada',
+        ready: '#table_registro_aula, .box .msg.alert',
+        rows: '#table_registro_aula tr',
+        data: (tr) => Array.from(tr.querySelectorAll('td')).map(td => td.textContent.trim()),
     }
 }

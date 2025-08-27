@@ -22,21 +22,21 @@ export default function(wsserver, state) {
     });
 
     function formatSemester(text) {
-        const [year, semester] = text.split(/[\.\/]/).map(Number);
-        return { year, semester, checked: true };
+        const [year, period] = text.split(/[\.\/]/).map(Number);
+        return { year, period, checked: true };
     }
 
     state.onUpdate((newState) => {
         form.get().querySelector('.form-header .professor-name').textContent = newState.professor?.name;
 
         if (newState.semesters === null) {
-            newState.semesters = firstFour.map(sem => `${sem.year}.${sem.semester}`);
+            newState.semesters = firstFour.map(sem => `${sem.year}.${sem.period}`);
             state.update({ semesters: newState.semesters });
             return;
         };
         const formattedSemesters = newState.semesters.map(formatSemester);
         semesterList.forEach(sem => {
-            const found = formattedSemesters.find(s => s.year === sem.year && s.semester === sem.semester);
+            const found = formattedSemesters.find(s => s.year === sem.year && s.period === sem.period);
             sem.checked = !!found;
         });
         renderSemesterList();
@@ -55,17 +55,17 @@ export default function(wsserver, state) {
     function createSemesterList() {
         const currentMonth = new Date().getMonth();
         const currentYear = new Date().getFullYear();
-        const currentSemester = currentMonth < 6 ? 1 : 2;
+        const currentPeriod = currentMonth < 6 ? 1 : 2;
     
         const listSize = 9;
         const semesterList = Array.from({ length: listSize }, (_, i) => {
-            let semester = currentSemester - i;
+            let period = currentPeriod - i;
             let year = currentYear;
-            while (semester <= 0) {
-                semester += 2;
+            while (period <= 0) {
+                period += 2;
                 year -= 1;
             }
-            return { semester, year, checked: false };
+            return { period, year, checked: false };
         });
 
         return semesterList;
@@ -76,12 +76,12 @@ export default function(wsserver, state) {
 
     function renderSemesterList() {
         semesterSelectContainer.innerHTML = '';
-        semesterList.forEach(({ semester, year, checked }) => {
+        semesterList.forEach(({ period, year, checked }) => {
             const container = document.createElement('div');
             container.classList.add('semester-button');
             container.innerHTML = `
-                <input type="checkbox" name="semester-${year}-${semester}" id="semester-${year}-${semester}" value="${year}.${semester}" ${checked ? 'checked' : ''}>
-                <label for="semester-${year}-${semester}">${year}/${semester}</label>
+                <input type="checkbox" name="semester-${year}-${period}" id="semester-${year}-${period}" value="${year}.${period}" ${checked ? 'checked' : ''}>
+                <label for="semester-${year}-${period}">${year}/${period}</label>
             `;
 
             semesterSelectContainer.appendChild(container);

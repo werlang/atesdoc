@@ -141,7 +141,7 @@ export default function(wsserver, state) {
                     </button>
                     <button class="proceed-btn" ${selectedBooks.length === 0 ? 'disabled' : ''}>
                         <i class="fa-solid fa-arrow-right"></i>
-                        <span>Gerar Atestado</span>
+                        <span>Gerar Relatório</span>
                     </button>
                 </div>
             </div>
@@ -153,7 +153,8 @@ export default function(wsserver, state) {
         
         proceedBtn.addEventListener('click', () => {
             if (selectedBooks.length === 0) return;
-            state.update({ step: 4, });
+            // state.update({ step: 4, });
+            getReport();
         });
         
         backBtn.addEventListener('click', () => {
@@ -189,6 +190,21 @@ export default function(wsserver, state) {
                 proceedBtn.removeAttribute('disabled');
             }
         }
+    }
+
+    async function getReport() {
+        let closeStream;
+        let processing = false;
+        let toast = null;
+        await new Promise(async (resolve) => {
+            closeStream = await wsserver.stream('get_report', {
+                books: state.get().books.filter(b => b.checked),
+                semesters: state.get().semesters,
+            }, message => {
+                console.log(new Date().toISOString(), message);
+            });
+        });
+        closeStream();
     }
 
 }

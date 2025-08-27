@@ -15,4 +15,13 @@ new Route('get_books', async (payload, reply) => {
     return { books };
 });
 
+new Route('get_report', async (payload, reply) => {
+    const books = payload.books.map(book => new Book(book));
+    for (const book of books) {
+        await book.fetchLessons(reply);
+    }
+    const report = books;
+    return { report };
+});
+
 console.log('WebSocket server is running on ws://localhost:8080');

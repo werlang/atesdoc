@@ -12,6 +12,62 @@ export default class Book {
         this.class = className
     }
 
+    async fetchLessons(reply) {
+        await SUAPScraper.initialize();
+
+        // https://suap.ifsul.edu.br/edu/registrar_chamada/55325/1/
+        const lessons = [];
+
+        for (const period of [1, 2]) {
+            const url = `${suapConfig.baseUrl}/${suapConfig.bookDetails.url}/${this.id}/${period}`;
+            console.log(`Fetching book details for book ${this.id} period ${period}: ${url}`);
+            await SUAPScraper.goto(url, suapConfig.bookDetails.ready, reply);
+    
+            const lessonsPeriod = await SUAPScraper.evaluate((template) => {
+                const lessons = [];
+                document.querySelectorAll(template.rows).forEach(tr => {
+                    const lesson = template.data(tr);
+                    lessons.push(lesson);
+                });
+                return lessons;
+            }, suapConfig.bookDetails);
+
+            lessons.push(...lessonsPeriod);
+        }
+
+        // [
+        //     'EditarRemover',
+        //     '2',
+        //     '4 Hora(s)/Aula',
+        //     '26/08/2025',
+        //.    'Pablo Werlang',
+        //     'Aula inicial da disciplina'
+        // ],
+
+        this.lessons = lessons.filter(lesson => lesson.length);
+        this.lessons = this.lessons.map(lesson => {
+            const lessonObject = {
+                period: parseInt(lesson[1]),
+                duration: parseInt(lesson[2].split(' ')[0]),
+                date: new Date(lesson[3].split('/').reverse().join('-')),
+                // teacher: lesson[4],
+                // topic: lesson[5],
+            };
+
+            if (lesson.length === 6) {
+                lessonObject.teacher = lesson[4];
+                lessonObject.topic = lesson[5];
+            }
+            else {
+                lessonObject.teacher = null;
+                lessonObject.topic = lesson[4];
+            }
+            return lessonObject;
+        });
+        
+        console.log(this.lessons);
+    } 
+
     /**
      * Fetches books for a given professor and semesters from SUAP.
      * @static
