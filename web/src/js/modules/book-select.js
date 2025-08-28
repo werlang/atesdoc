@@ -153,8 +153,7 @@ export default function(wsserver, state) {
         
         proceedBtn.addEventListener('click', () => {
             if (selectedBooks.length === 0) return;
-            // state.update({ step: 4, });
-            getReport();
+            state.update({ step: 4 });
         });
         
         backBtn.addEventListener('click', () => {
@@ -191,22 +190,4 @@ export default function(wsserver, state) {
             }
         }
     }
-
-    async function getReport() {
-        let closeStream;
-        let processing = false;
-        let toast = null;
-        await new Promise(async (resolve) => {
-            closeStream = await wsserver.stream('get_report', {
-                books: state.get().books.filter(b => b.checked),
-                semesters: state.get().semesters,
-            }, message => {
-                console.log(new Date().toISOString(), message);
-            });
-        });
-        closeStream();
-    }
-
 }
-
-// TODO: fetch inside books and go to step 4.

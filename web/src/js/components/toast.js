@@ -80,6 +80,13 @@ export default class Toast {
         this.fade(1);
     }
 
+    setText(message) {
+        this.message = message;
+        this.element.innerHTML = this.message;
+    }
+
+    // static methods for different types of toasts
+
     static info(message, duration, position, customClass) {
         return new Toast(message, 'info', duration, position, customClass);
     }

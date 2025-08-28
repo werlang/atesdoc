@@ -1,9 +1,10 @@
 import WSClient from "./helpers/wsclient.js";
 import Toast from "./components/toast.js";
+import StateManager from "./helpers/state.js";
 import professorSearch from "./modules/professor-search.js";
 import semesterSelect from "./modules/semester-select.js";
-import StateManager from "./helpers/state.js";
 import bookSelect from "./modules/book-select.js";
+import report from "./modules/report.js";
 
 import '../less/index.less';
 
@@ -52,5 +53,6 @@ state.onUpdate((newState) => {
 professorSearch(wsserver, state);
 semesterSelect(wsserver, state);
 bookSelect(wsserver, state);
+report(wsserver, state);
 
 state.alert();

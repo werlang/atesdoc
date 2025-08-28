@@ -12,6 +12,31 @@ export default class Book {
         this.class = className
     }
 
+    formatLessons(data) {
+        let lessons = data.filter(lesson => lesson.length);
+        lessons = lessons.map(lesson => {
+            const lessonObject = {
+                period: parseInt(lesson[1]),
+                duration: parseInt(lesson[2].split(' ')[0]),
+                date: new Date(lesson[3].split('/').reverse().join('-')),
+                // teacher: lesson[4],
+                // topic: lesson[5],
+            };
+
+            if (lesson.length === 6) {
+                lessonObject.professor = lesson[4];
+                lessonObject.topic = lesson[5];
+            }
+            else {
+                lessonObject.professor = null;
+                lessonObject.topic = lesson[4];
+            }
+            return lessonObject;
+        });
+
+        return lessons;
+    }
+
     async fetchLessons(reply) {
         await SUAPScraper.initialize();
 
@@ -23,7 +48,7 @@ export default class Book {
             console.log(`Fetching book details for book ${this.id} period ${period}: ${url}`);
             await SUAPScraper.goto(url, suapConfig.bookDetails.ready, reply);
     
-            const lessonsPeriod = await SUAPScraper.evaluate((template) => {
+            let lessonsPeriod = await SUAPScraper.evaluate((template) => {
                 const lessons = [];
                 document.querySelectorAll(template.rows).forEach(tr => {
                     const lesson = template.data(tr);
@@ -31,9 +56,12 @@ export default class Book {
                 });
                 return lessons;
             }, suapConfig.bookDetails);
+            lessonsPeriod = this.formatLessons(lessonsPeriod);
 
             lessons.push(...lessonsPeriod);
         }
+        reply({ status: 'fetched', lessons, book: this.id });
+        this.lessons = lessons;
 
         // [
         //     'EditarRemover',
@@ -44,27 +72,6 @@ export default class Book {
         //     'Aula inicial da disciplina'
         // ],
 
-        this.lessons = lessons.filter(lesson => lesson.length);
-        this.lessons = this.lessons.map(lesson => {
-            const lessonObject = {
-                period: parseInt(lesson[1]),
-                duration: parseInt(lesson[2].split(' ')[0]),
-                date: new Date(lesson[3].split('/').reverse().join('-')),
-                // teacher: lesson[4],
-                // topic: lesson[5],
-            };
-
-            if (lesson.length === 6) {
-                lessonObject.teacher = lesson[4];
-                lessonObject.topic = lesson[5];
-            }
-            else {
-                lessonObject.teacher = null;
-                lessonObject.topic = lesson[4];
-            }
-            return lessonObject;
-        });
-        
         console.log(this.lessons);
     } 
 
