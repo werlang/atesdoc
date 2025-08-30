@@ -79,7 +79,7 @@ export default class SUAPScraper {
                 return SUAPScraper;
             } catch (err) {
                 if (err.name === 'TimeoutError') {
-                    console.log('Timeout waiting for selector, trying to login again...');
+                    console.log(`Timeout waiting for selector ${confirmElement}, trying to login again...`);
                     SUAPScraper.logged = false;
                     return await SUAPScraper.goto(url, confirmElement, reply);
                 } else {

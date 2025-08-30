@@ -1,3 +1,4 @@
+import Modal from "../components/modal.js";
 import Toast from "../components/toast.js";
 
 export default function(wsserver, state) {
@@ -150,6 +151,7 @@ export default function(wsserver, state) {
             closeStream = await wsserver.stream('get_report', {
                 books: booksToFetch,
                 semesters: currentReportData.semesters,
+                professorName: currentReportData.professor,
             }, message => {
                 console.log(new Date().toISOString(), message);
 
@@ -185,8 +187,12 @@ export default function(wsserver, state) {
                         toast.type = 'info';
                         toast.setText(`<i class="fa-solid fa-spinner fa-spin-pulse"></i> Diários analisados: ${fetchedCount}/${booksToFetch.length}`);
                     }
-                    
-                    currentReportData.books.find(b => b.id === message.book).fetched = true;
+
+                    const currentBook = currentReportData.books.find(b => b.id === message.book.id);
+                    if (currentBook) {
+                        currentBook.fetched = true;
+                        currentBook.report = message.book.report;
+                    }
                     renderFetchedBooks(currentReportData.books.filter(b => b.fetched));
 
                     return;
@@ -203,15 +209,7 @@ export default function(wsserver, state) {
                 if (message.books) {
                     if (toast) toast.close();
                     updateProgressStatus('Análise concluída!', booksToFetch.length, booksToFetch.length);
-                    currentReportData.books.forEach(book => {
-                        const bookFromMessage = message.books.find(b => b.id === book.id);
-                        if (bookFromMessage) {
-                            book.lessons = bookFromMessage.lessons || [];
-                        }
-                    });
-                
                     state.update({ books: currentReportData.books });
-
                     renderFetchedBooks(currentReportData.books);
                     showReportActions();
                     Toast.success('Análise concluída com sucesso!');
@@ -255,7 +253,11 @@ export default function(wsserver, state) {
             
             bookCard.innerHTML = `
                 <div class="book-card-header">
-                    <div class="semester-badge">${book.semester}</div>
+                    <div class="semester-badge-container">
+                        ${Object.keys(book.report.semesters).map(sem => `
+                            <div class="semester-badge">${sem}</div>
+                        `).join('')}
+                    </div>
                     <div class="completion-icon"><i class="fa-solid fa-check"></i></div>
                 </div>
                 <div class="book-card-content">
@@ -263,6 +265,73 @@ export default function(wsserver, state) {
                     <p class="book-class">${book.class}</p>
                 </div>
             `;
+
+            const infoIcon = document.createElement('div');
+            infoIcon.className = 'info-icon';
+            infoIcon.title = `Mais informações`;
+            infoIcon.innerHTML = ` <i class="fa-solid fa-circle-info"></i> `;
+            bookCard.querySelector('.book-card-header .semester-badge-container').append(infoIcon);
+            infoIcon.addEventListener('click', () => {
+                // Generate semester details HTML
+                const semesterDetailsHtml = Object.entries(book.report.semesters).map(([semesterKey, semesterData]) => `
+                    <div class="semester-detail-card">
+                        <div class="semester-detail-header">
+                            <h4><i class="fa-solid fa-calendar"></i> ${semesterKey}</h4>
+                        </div>
+                        <div class="semester-stats-grid">
+                            <div class="stat-item">
+                                <i class="fa-solid fa-chalkboard-user"></i>
+                                <span class="stat-label">Períodos</span>
+                                <span class="stat-value">${semesterData.blocks}</span>
+                            </div>
+                            <div class="stat-item">
+                                <i class="fa-solid fa-clock"></i>
+                                <span class="stat-label">Horas</span>
+                                <span class="stat-value">${semesterData.hours}h</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                new Modal(`
+                    <h2>${book.book} - ${book.class}</h2>
+                    <div class="book-report-summary">
+                        <div class="summary-stats">
+                            <div class="summary-stat">
+                                <div class="summary-stat-icon">
+                                    <i class="fa-solid fa-list-check"></i>
+                                </div>
+                                <div class="summary-stat-content">
+                                    <span class="summary-stat-label">Aulas Totais Registradas</span>
+                                    <span class="summary-stat-value">${book.report.lessons.length}</span>
+                                </div>
+                            </div>
+                            <div class="summary-stat">
+                                <div class="summary-stat-icon">
+                                    <i class="fa-solid fa-check-circle"></i>
+                                </div>
+                                <div class="summary-stat-content">
+                                    <span class="summary-stat-label">Aulas Elegíveis</span>
+                                    <span class="summary-stat-value">${book.report.eligibleLessons.length}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="semester-details">
+                            <h3><i class="fa-solid fa-chart-bar"></i> Detalhes por Semestre</h3>
+                            <div class="semester-details-grid">
+                                ${semesterDetailsHtml}
+                            </div>
+                        </div>
+                        
+                        <div class="period-explanation">
+                            <p><i class="fa-solid fa-info-circle"></i> As aulas elegíveis são aquelas que foram registradas em nome do professor <strong>${book.teacher}</strong>.</p>
+                            <p><i class="fa-solid fa-info-circle"></i> O período considerado para cada semestre segue o calendário civil: o <strong>primeiro semestre</strong> abrange aulas registradas de <strong>janeiro a junho</strong>, enquanto o <strong>segundo semestre</strong> corresponde às aulas de <strong>julho a dezembro</strong>.</p>
+                            <p><i class="fa-solid fa-info-circle"></i> Cada perído corresponde a 45 minutos de aula.
+                        </div>
+                    </div>
+                `, { large: true });
+            });
 
             grid.appendChild(bookCard);
         });

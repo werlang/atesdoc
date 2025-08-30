@@ -9,19 +9,18 @@ export default class Book {
         this.semester = semester;
         this.link = link;
         this.book = title;
-        this.class = className
+        this.class = className;
     }
 
     formatLessons(data) {
         let lessons = data.filter(lesson => lesson.length);
         lessons = lessons.map(lesson => {
             const lessonObject = {
-                period: parseInt(lesson[1]),
-                duration: parseInt(lesson[2].split(' ')[0]),
+                blocks: parseInt(lesson[2].split(' ')[0]),
                 date: new Date(lesson[3].split('/').reverse().join('-')),
-                // teacher: lesson[4],
-                // topic: lesson[5],
             };
+
+            lessonObject.semester = lessonObject.date.getFullYear() + '.' + (lessonObject.date.getMonth() < 6 ? '1' : '2');
 
             if (lesson.length === 6) {
                 lessonObject.professor = lesson[4];
@@ -60,8 +59,10 @@ export default class Book {
 
             lessons.push(...lessonsPeriod);
         }
-        reply({ status: 'fetched', lessons, book: this.id });
+
         this.lessons = lessons;
+        this.report = this.generateReport(lessons);
+        reply({ status: 'fetched', book: this });
 
         // [
         //     'EditarRemover',
@@ -74,6 +75,33 @@ export default class Book {
 
         console.log(this.lessons);
     } 
+
+    generateReport(lessons) {
+        const blockDuration = 45; // minutes
+        const report = {};
+        
+        report.lessons = lessons;
+        report.eligibleLessons = lessons.filter(lesson => lesson.professor === null || lesson.professor === this.professor);
+        report.semesters = {};
+
+        report.eligibleLessons.forEach(lesson => {
+            let lessonReport = report.semesters[lesson.semester];
+            if (!lessonReport) {
+                lessonReport = {
+                    lessons: [],
+                    blocks: 0,
+                    hours: 0,
+                };
+            }
+            lessonReport.lessons.push(lesson);
+            lessonReport.blocks += lesson.blocks;
+            lessonReport.hours = lessonReport.blocks * blockDuration / 60;
+
+            report.semesters[lesson.semester] = lessonReport;
+        });
+
+        return report;
+    }
 
     /**
      * Fetches books for a given professor and semesters from SUAP.
@@ -128,3 +156,5 @@ export default class Book {
         }));
     }
 }
+
+// TODO: need to request one semester before and one after the selected ones to get all lessons

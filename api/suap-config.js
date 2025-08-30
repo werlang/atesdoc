@@ -26,6 +26,11 @@ export default {
             picture: (tr) => tr.querySelector('td.field-get_foto img')?.src,
         }
     },
+    professorFunctionalPage: {
+        url: 'rh/servidor',
+        ready: '.definition-list',
+        item: '.definition-list .list-item dd',
+    },
     bookSearch: {
         // `edu/professor/${professorId}/?tab=disciplinas&ano-periodo=${semester}`
         url: {
