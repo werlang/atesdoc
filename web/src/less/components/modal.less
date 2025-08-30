@@ -1,0 +1,227 @@
+@import '../common.less';
+@import 'input.less';
+@import 'button.less';
+
+#fog {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    background-color: rgb(from var(--color-black) r g b / 0.6);
+    z-index: 10;
+    backdrop-filter: blur(3px);
+
+    &.invisible {
+        background-color: transparent;
+        backdrop-filter: none;
+    }
+
+    &.dark {
+        background-color: var(--color-black);
+    }
+
+    .modal {
+        background-color: rgb(from var(--color-background) r g b / 0.95);
+        color: rgb(from var(--color-text) r g b / 1);
+        box-sizing: border-box;
+        display: flex;
+        border: 2px solid rgb(from var(--color-primary) r g b / 0.2);
+        box-shadow: 0 8px 32px rgb(from var(--color-black) r g b / 0.2);
+        max-height: 100vh;
+        width: 100%;
+        max-width: 600px;
+        
+        border-radius: 0;
+        
+        @media @size-600 {
+            border-radius: 12px;
+        }
+
+        &.large {
+            max-width: 900px;
+
+            #content {
+                max-width: 100%;
+            }
+        }
+
+        #content {
+            display: flex;
+            flex-direction: column;
+            padding: 5px 5px 20px 5px;
+            overflow: hidden auto;
+            flex-grow: 1;
+            box-sizing: border-box;
+            width: 100vw;
+            max-width: 600px;
+            max-height: 90vh;
+            box-sizing: border-box;
+            
+            @media @size-400 {
+                padding: 24px 32px 32px;
+            }
+
+            @media @size-600 {
+                width: auto;
+            }
+    
+            &.loading {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-size: 2rem;
+                color: rgb(from var(--color-text) r g b / 1);
+            }
+
+            h2 {
+                margin: 0 0 24px 0;
+                color: rgb(from var(--color-primary) r g b / 1);
+                font-weight: 600;
+            }
+           
+            .table .empty {
+                font-weight: bold;
+                margin-bottom: 20px;
+                border: 2px solid rgb(from var(--color-primary) r g b / 0.2);
+                background-color: rgb(from var(--color-primary) r g b / 0.05);
+                color: rgb(from var(--color-text) r g b / 1);
+                padding: 16px 20px;
+                border-radius: 8px;
+            }    
+               
+            label.option {
+                display: flex;
+                align-items: center;
+                margin-bottom: 15px;
+                margin-left: 10px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+
+                &:hover {
+                    color: rgb(from var(--color-primary) r g b / 1);
+                }
+
+                input {
+                    width: 20px;
+                    height: 20px;
+                    margin: 0 12px 0 0;
+                    accent-color: rgb(from var(--color-primary) r g b / 1);
+                    cursor: pointer;
+                }
+            }
+
+            p {
+                margin: 0 0 16px 0;
+                line-height: 1.6;
+                color: rgb(from var(--color-text) r g b / 0.9);
+            }
+    
+            ul {
+                padding-left: 25px;
+                
+                li {
+                    margin-bottom: 8px;
+                    color: rgb(from var(--color-text) r g b / 0.9);
+                }
+            }
+    
+        }
+
+        #button-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin-top: 24px;
+            gap: 12px;
+
+            @media @size-600 {
+                flex-direction: row;
+                gap: 16px;
+            }
+
+            &.vertical {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            button, .button {
+                max-width: 100%;
+                width: 100%;
+
+                @media @size-600 {
+                    max-width: 200px;
+                    width: auto;
+                }
+            }
+        }
+
+        .table {
+            display: flex;
+            flex-direction: column;
+            overflow: auto;
+            border-radius: 8px;
+            border: 2px solid rgb(from var(--color-primary) r g b / 0.1);
+
+            @media @size-1000 {
+                overflow: visible;
+            }
+
+            .body {
+                max-height: 350px;
+                overflow: visible;
+                
+                @media @size-1000 {
+                    overflow: hidden auto;
+                }
+            }
+
+            .row {
+                display: grid;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                cursor: default;
+
+                &.col-4 { grid-template-columns: repeat(4, 1fr); }
+                &.col-5 { grid-template-columns: repeat(5, 1fr); }
+                &.col-6 { grid-template-columns: repeat(6, 1fr); }
+
+                &:hover {
+                    background-color: rgb(from var(--color-primary) r g b / 0.05);
+                }
+
+                &.head {
+                    font-weight: 600;
+                    background-color: rgb(from var(--color-primary) r g b / 0.1);
+                    color: rgb(from var(--color-primary) r g b / 1);
+                }
+    
+                .cell {
+                    padding: 12px 16px;
+                    display: flex;
+                    align-items: center;
+                    min-width: 130px;
+                    box-sizing: border-box;
+                    overflow-x: hidden;
+                    border-bottom: 1px solid rgb(from var(--color-primary) r g b / 0.1);
+
+                    a {
+                        text-decoration: none;
+                        color: rgb(from var(--color-link) r g b / 1);
+                        cursor: pointer;
+                        transition: all 0.2s ease;
+
+                        &:hover {
+                            color: rgb(from var(--color-primary) r g b / 1);
+                            text-decoration: underline;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
