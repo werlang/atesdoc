@@ -1,20 +1,44 @@
 main {
     .report-generation {
-        padding: 30px;
-        margin: 40px 0;
+        // Mobile-first: Start with mobile styles
+        padding: 20px;
+        margin: 20px 0;
         background: rgb(from var(--color-white) r g b / 0.95);
         border-radius: 16px;
         box-shadow: 0 4px 20px rgb(from var(--color-primary) r g b / 0.1);
 
+        // Enhance for larger screens
+        @media @size-600 {
+            padding: 25px;
+            margin: 30px 0;
+        }
+
+        @media (min-width: 900px) {
+            padding: 30px;
+            margin: 40px 0;
+        }
+
         .report-header {
             text-align: center;
-            margin-bottom: 30px;
+            // Mobile-first: Start with mobile margin
+            margin-bottom: 25px;
+
+            // Enhance for larger screens
+            @media @size-600 {
+                margin-bottom: 30px;
+            }
 
             h2 {
                 color: var(--color-primary);
-                font-size: 1.8rem;
+                // Mobile-first: Start with mobile font size
+                font-size: 1.5rem;
                 margin-bottom: 8px;
                 font-weight: 600;
+
+                // Enhance for larger screens
+                @media @size-600 {
+                    font-size: 1.8rem;
+                }
             }
 
             p {
@@ -25,33 +49,60 @@ main {
         }
 
         .report-progress {
-            margin-bottom: 40px;
+            // Mobile-first: Start with mobile margin
+            margin-bottom: 30px;
+
+            // Enhance for larger screens
+            @media @size-600 {
+                margin-bottom: 40px;
+            }
 
             .progress-stats {
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 20px;
+                // Mobile-first: Start with single column
+                grid-template-columns: 1fr;
+                gap: 15px;
                 margin-bottom: 25px;
+
+                // Enhance for larger screens
+                @media @size-600 {
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 20px;
+                }
 
                 .stat-item {
                     display: flex;
                     align-items: center;
-                    padding: 16px 20px;
+                    // Mobile-first: Start with mobile padding
+                    padding: 14px 16px;
                     background: rgb(from var(--color-background) r g b / 0.5);
                     border-radius: 12px;
                     border: 1px solid rgb(from var(--color-primary) r g b / 0.1);
+
+                    // Enhance for larger screens
+                    @media @size-600 {
+                        padding: 16px 20px;
+                    }
 
                     .stat-icon {
                         display: flex;
                         align-items: center;
                         justify-content: center;
-                        width: 40px;
-                        height: 40px;
+                        // Mobile-first: Start with mobile size
+                        width: 36px;
+                        height: 36px;
                         background: rgb(from var(--color-primary) r g b / 0.1);
                         border-radius: 50%;
-                        margin-right: 15px;
+                        margin-right: 12px;
                         color: var(--color-primary);
                         font-size: 1.1rem;
+
+                        // Enhance for larger screens
+                        @media @size-600 {
+                            width: 40px;
+                            height: 40px;
+                            margin-right: 15px;
+                        }
                     }
 
                     .stat-info {
@@ -66,9 +117,15 @@ main {
                         }
 
                         .stat-value {
-                            font-size: 1rem;
+                            // Mobile-first: Start with mobile font size
+                            font-size: 0.9rem;
                             color: var(--color-text);
                             font-weight: 600;
+
+                            // Enhance for larger screens
+                            @media @size-600 {
+                                font-size: 1rem;
+                            }
                         }
                     }
                 }
@@ -116,12 +173,22 @@ main {
 
             h3 {
                 display: flex;
-                align-items: center;
-                gap: 10px;
+                // Mobile-first: Start with mobile layout
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
                 color: var(--color-primary);
-                font-size: 1.3rem;
+                font-size: 1.1rem;
                 margin-bottom: 20px;
                 font-weight: 600;
+
+                // Enhance for larger screens
+                @media @size-600 {
+                    flex-direction: row;
+                    align-items: center;
+                    gap: 10px;
+                    font-size: 1.3rem;
+                }
 
                 .fetched-count {
                     color: rgb(from var(--color-text) r g b / 0.6);
@@ -132,15 +199,28 @@ main {
 
             .fetched-books-grid {
                 display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-                gap: 16px;
+                // Mobile-first: Start with single column
+                grid-template-columns: 1fr;
+                gap: 12px;
+
+                // Enhance for larger screens
+                @media @size-600 {
+                    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                    gap: 16px;
+                }
 
                 .fetched-book-card {
                     background: rgb(from var(--color-white) r g b / 0.9);
                     border-radius: 12px;
                     border: 1px solid rgb(from var(--color-primary) r g b / 0.1);
-                    padding: 16px;
+                    // Mobile-first: Start with mobile padding
+                    padding: 14px;
                     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+                    // Enhance for larger screens
+                    @media @size-600 {
+                        padding: 16px;
+                    }
 
                     &.completed {
                         border-color: rgb(from var(--color-primary) r g b / 0.3);
@@ -213,14 +293,22 @@ main {
 
         .report-actions {
             display: none;
-            justify-content: space-between;
+            // Mobile-first: Start with mobile layout
+            flex-direction: column;
             align-items: center;
-            gap: 15px;
+            gap: 12px;
             padding-top: 25px;
             border-top: 1px solid rgb(from var(--color-primary) r g b / 0.1);
             opacity: 0;
             transform: translateY(10px);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+            // Enhance for larger screens
+            @media @size-600 {
+                flex-direction: row;
+                justify-content: space-between;
+                gap: 15px;
+            }
 
             &.show {
                 opacity: 1;
@@ -232,7 +320,10 @@ main {
                 background: rgb(from var(--color-background) r g b / 0.8);
                 border: 1px solid rgb(from var(--color-primary) r g b / 0.2);
                 color: var(--color-text);
-                padding: 12px 20px;
+                // Mobile-first: Start with mobile layout
+                width: 100%;
+                justify-content: center;
+                padding: 14px 20px;
                 border-radius: 8px;
                 cursor: pointer;
                 transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -240,6 +331,12 @@ main {
                 align-items: center;
                 gap: 8px;
                 font-weight: 500;
+
+                // Enhance for larger screens
+                @media @size-600 {
+                    width: auto;
+                    padding: 12px 20px;
+                }
 
                 &:hover {
                     background: rgb(from var(--color-background) r g b / 1);
@@ -253,7 +350,10 @@ main {
                 background: var(--color-primary);
                 border: none;
                 color: white;
-                padding: 12px 20px;
+                // Mobile-first: Start with mobile layout
+                width: 100%;
+                justify-content: center;
+                padding: 14px 20px;
                 border-radius: 8px;
                 cursor: pointer;
                 transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -261,6 +361,12 @@ main {
                 align-items: center;
                 gap: 8px;
                 font-weight: 600;
+
+                // Enhance for larger screens
+                @media @size-600 {
+                    width: auto;
+                    padding: 12px 20px;
+                }
 
                 &:hover {
                     background: rgb(from var(--color-primary) r g b / 0.9);
@@ -361,90 +467,18 @@ main {
         }
     }
 
-    // Responsive design
-    @media @size-600 {
-        .report-generation {
-            padding: 25px;
-            margin: 30px 0;
-
-            .report-progress {
-                .progress-stats {
-                    grid-template-columns: 1fr;
-                    gap: 15px;
-
-                    .stat-item {
-                        padding: 14px 16px;
-
-                        .stat-icon {
-                            width: 36px;
-                            height: 36px;
-                            margin-right: 12px;
-                        }
-                    }
-                }
-            }
-
-            .fetched-books-container {
-                .fetched-books-grid {
-                    grid-template-columns: 1fr;
-                    gap: 12px;
-
-                    .fetched-book-card {
-                        padding: 14px;
-                    }
-                }
-            }
-
-            .report-actions {
-                flex-direction: column;
-                gap: 12px;
-
-                .back-btn,
-                .generate-btn,
-                .view-report-btn {
-                    width: 100%;
-                    justify-content: center;
-                    padding: 14px 20px;
-                }
-            }
+    // Animation keyframes
+    @keyframes skeleton-loading {
+        0% {
+            opacity: 1;
         }
-    }
 
-    @media (max-width: 400px) {
-        .report-generation {
-            padding: 20px;
-            margin: 20px 0;
+        50% {
+            opacity: 0.4;
+        }
 
-            .report-header {
-                margin-bottom: 25px;
-
-                h2 {
-                    font-size: 1.5rem;
-                }
-            }
-
-            .report-progress {
-                margin-bottom: 30px;
-
-                .progress-stats {
-                    .stat-item {
-                        .stat-info {
-                            .stat-value {
-                                font-size: 0.9rem;
-                            }
-                        }
-                    }
-                }
-            }
-
-            .fetched-books-container {
-                h3 {
-                    font-size: 1.1rem;
-                    flex-direction: column;
-                    align-items: flex-start;
-                    gap: 5px;
-                }
-            }
+        100% {
+            opacity: 1;
         }
     }
 }
@@ -455,10 +489,12 @@ main {
     .book-report-summary {
         .summary-stats {
             display: grid;
+            // Mobile-first: Start with single column
             grid-template-columns: 1fr;
             gap: 16px;
             margin-bottom: 32px;
 
+            // Enhance for larger screens
             @media @size-600 {
                 grid-template-columns: repeat(2, 1fr);
             }
@@ -529,9 +565,11 @@ main {
 
             .semester-details-grid {
                 display: grid;
+                // Mobile-first: Start with single column
                 grid-template-columns: 1fr;
                 gap: 16px;
 
+                // Enhance for larger screens
                 @media @size-600 {
                     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
                 }
