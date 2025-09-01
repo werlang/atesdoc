@@ -141,11 +141,26 @@ main {
                     margin-bottom: 10px;
 
                     .progress-fill {
+                        --color-1: rgb(from var(--color-primary) r g b / 0.8);
+                        --color-2: rgb(from var(--color-secondary) r g b / 1);
+
                         height: 100%;
-                        background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
                         border-radius: 4px;
-                        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                         width: 0%;
+                        transition: all 0.3s;
+                        animation: colo-slide 2s linear infinite;
+                        background-image: linear-gradient(90deg, var(--color-1) 0%, var(--color-2) 10%, var(--color-1) 20%);
+                        background-size: 200% 100%;
+
+                        @keyframes colo-slide {
+                            0% {
+                                background-position: 200% 50%;
+                            }
+                            100% {
+                                background-position: 0% 50%;
+                            }
+                           
+                        }
                     }
                 }
 
@@ -246,17 +261,6 @@ main {
                                 font-size: 0.8rem;
                                 font-weight: 600;
                             }
-
-                            .info-icon {
-                                color: rgb(from var(--color-text) r g b / 0.5);
-                                font-size: 0.9rem;
-                                cursor: pointer;
-                                transition: color 0.25s;
-
-                                &:hover {
-                                    color: var(--color-primary);
-                                }
-                            }
                         }
 
                         .completion-icon {
@@ -284,7 +288,42 @@ main {
                         .book-class {
                             font-size: 0.9rem;
                             color: rgb(from var(--color-text) r g b / 0.7);
-                            margin-bottom: 10px;
+                            margin-bottom: 12px;
+                        }
+
+                        .book-card-actions {
+                            display: flex;
+                            justify-content: flex-end;
+                            margin-top: 8px;
+
+                            .view-details-btn {
+                                background: var(--color-primary);
+                                border: none;
+                                color: white;
+                                padding: 8px 12px;
+                                border-radius: 6px;
+                                cursor: pointer;
+                                transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+                                display: flex;
+                                align-items: center;
+                                gap: 6px;
+                                font-weight: 500;
+                                font-size: 0.85rem;
+
+                                &:hover {
+                                    background: rgb(from var(--color-primary) r g b / 0.9);
+                                    transform: translateY(-1px);
+                                    box-shadow: 0 3px 8px rgb(from var(--color-primary) r g b / 0.3);
+                                }
+
+                                &:active {
+                                    transform: translateY(0);
+                                }
+
+                                i {
+                                    font-size: 0.85rem;
+                                }
+                            }
                         }
                     }
                 }
@@ -636,6 +675,43 @@ main {
                                 font-size: 1.4rem;
                                 font-weight: 700;
                                 color: rgb(from var(--color-secondary) r g b / 1);
+                            }
+                        }
+                    }
+
+                    .details-container {
+                        padding: 16px 20px;
+                        border-top: 1px solid rgb(from var(--color-secondary) r g b / 0.2);
+                        background: rgb(from var(--color-secondary) r g b / 0.02);
+                        display: flex;
+                        justify-content: center;
+
+                        .details-btn {
+                            background: var(--color-secondary);
+                            border: none;
+                            color: white;
+                            padding: 10px 16px;
+                            border-radius: 8px;
+                            cursor: pointer;
+                            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                            font-weight: 600;
+                            font-size: 0.9rem;
+
+                            &:hover {
+                                background: rgb(from var(--color-secondary) r g b / 0.9);
+                                transform: translateY(-1px);
+                                box-shadow: 0 4px 12px rgb(from var(--color-secondary) r g b / 0.3);
+                            }
+
+                            &:active {
+                                transform: translateY(0);
+                            }
+
+                            i {
+                                font-size: 0.9rem;
                             }
                         }
                     }

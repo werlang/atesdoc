@@ -32,7 +32,16 @@ export default function(wsserver, state) {
         });
 
         renderReportUI(reportContainer);
-        startReportGeneration();
+
+        if (currentReportData.books.some(book => book.report)) {
+            // If some books already have reports, assume generation was completed before
+            currentReportData.isComplete = true;
+            renderFetchedBooks(currentReportData.books);
+            showReportActions();
+        }
+        else {
+            startReportGeneration();
+        }
     }
 
     function renderReportUI(container) {
@@ -80,7 +89,7 @@ export default function(wsserver, state) {
                         </div>
                         <div class="progress-text">
                             <span class="progress-status"></span>
-                            <span class="progress-count">0 / ${currentReportData.books.length}</span>
+                            <span class="progress-count"></span>
                         </div>
                     </div>
                 </div>
@@ -263,15 +272,17 @@ export default function(wsserver, state) {
                 <div class="book-card-content">
                     <h4 class="book-title">${book.book}</h4>
                     <p class="book-class">${book.class}</p>
+                    <div class="book-card-actions">
+                        <button class="view-details-btn">
+                            <i class="fa-solid fa-chart-line"></i>
+                            <span>Ver Detalhes</span>
+                        </button>
+                    </div>
                 </div>
             `;
 
-            const infoIcon = document.createElement('div');
-            infoIcon.className = 'info-icon';
-            infoIcon.title = `Mais informações`;
-            infoIcon.innerHTML = ` <i class="fa-solid fa-circle-info"></i> `;
-            bookCard.querySelector('.book-card-header .semester-badge-container').append(infoIcon);
-            infoIcon.addEventListener('click', () => {
+            const viewDetailsBtn = bookCard.querySelector('.view-details-btn');
+            viewDetailsBtn.addEventListener('click', () => {
                 // Generate semester details HTML
                 const semesterDetailsHtml = Object.entries(book.report.semesters).map(([semesterKey, semesterData]) => `
                     <div class="semester-detail-card">
@@ -289,6 +300,12 @@ export default function(wsserver, state) {
                                 <span class="stat-label">Horas</span>
                                 <span class="stat-value">${semesterData.hours}h</span>
                             </div>
+                        </div>
+                        <div class="details-container">
+                            <button class="details-btn">
+                                <i class="fa-solid fa-list"></i>
+                                <span>Detalhes</span>
+                            </button>
                         </div>
                     </div>
                 `).join('');
@@ -325,7 +342,7 @@ export default function(wsserver, state) {
                         </div>
                         
                         <div class="period-explanation">
-                            <p><i class="fa-solid fa-info-circle"></i> As aulas elegíveis são aquelas que foram registradas em nome do professor <strong>${book.teacher}</strong>.</p>
+                            <p><i class="fa-solid fa-info-circle"></i> As aulas elegíveis são aquelas que foram registradas em nome do professor <strong>${state.get().professor.name}</strong>.</p>
                             <p><i class="fa-solid fa-info-circle"></i> O período considerado para cada semestre segue o calendário civil: o <strong>primeiro semestre</strong> abrange aulas registradas de <strong>janeiro a junho</strong>, enquanto o <strong>segundo semestre</strong> corresponde às aulas de <strong>julho a dezembro</strong>.</p>
                             <p><i class="fa-solid fa-info-circle"></i> Cada perído corresponde a 45 minutos de aula.
                         </div>
