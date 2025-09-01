@@ -260,6 +260,16 @@ main {
                                 border-radius: 16px;
                                 font-size: 0.8rem;
                                 font-weight: 600;
+
+                                &.included {
+                                    background: var(--color-secondary);
+                                    color: var(--color-white);
+                                }
+
+                                &.excluded {
+                                    background: rgb(from var(--color-text) r g b / 0.1);
+                                    color: rgb(from var(--color-text) r g b / 0.6);
+                                }
                             }
                         }
 
@@ -267,7 +277,7 @@ main {
                             width: 24px;
                             height: 24px;
                             background: var(--color-primary);
-                            color: white;
+                            color: var(--color-white);
                             border-radius: 50%;
                             display: flex;
                             align-items: center;
@@ -299,7 +309,7 @@ main {
                             .view-details-btn {
                                 background: var(--color-primary);
                                 border: none;
-                                color: white;
+                                color: var(--color-white);
                                 padding: 8px 12px;
                                 border-radius: 6px;
                                 cursor: pointer;
@@ -374,7 +384,7 @@ main {
                 // Enhance for larger screens
                 @media @size-600 {
                     width: auto;
-                    padding: 12px 20px;
+                    padding: 15px 40px;
                 }
 
                 &:hover {
@@ -384,11 +394,10 @@ main {
                 }
             }
 
-            .generate-btn,
-            .view-report-btn {
-                background: var(--color-primary);
+            .generate-btn {
+                background: var(--color-secondary);
                 border: none;
-                color: white;
+                color: var(--color-white);
                 // Mobile-first: Start with mobile layout
                 width: 100%;
                 justify-content: center;
@@ -404,42 +413,33 @@ main {
                 // Enhance for larger screens
                 @media @size-600 {
                     width: auto;
-                    padding: 12px 20px;
+                    padding: 15px 40px;
                 }
-
-                &:hover {
-                    background: rgb(from var(--color-primary) r g b / 0.9);
-                    transform: translateY(-1px);
-                    box-shadow: 0 4px 12px rgb(from var(--color-primary) r g b / 0.3);
-                }
-            }
-
-            .view-report-btn {
-                background: var(--color-secondary);
 
                 &:hover {
                     background: rgb(from var(--color-secondary) r g b / 0.9);
                     box-shadow: 0 4px 12px rgb(from var(--color-secondary) r g b / 0.3);
                 }
             }
+            
         }
 
         .error-state {
             text-align: center;
             padding: 40px 20px;
-            background: rgb(from red r g b / 0.05);
+            background: rgb(from var(--color-error) r g b / 0.05);
             border-radius: 12px;
-            border: 1px solid rgb(from red r g b / 0.2);
+            border: 1px solid rgb(from var(--color-error) r g b / 0.2);
             margin-top: 20px;
 
             .error-icon {
-                color: #dc3545;
+                color: var(--color-error);
                 font-size: 3rem;
                 margin-bottom: 15px;
             }
 
             h3 {
-                color: #dc3545;
+                color: var(--color-error);
                 margin-bottom: 10px;
                 font-weight: 600;
             }
@@ -467,12 +467,12 @@ main {
                 }
 
                 .retry-btn {
-                    background: #dc3545;
+                    background: var(--color-error);
                     border: none;
-                    color: white;
+                    color: var(--color-white);
 
                     &:hover {
-                        background: rgb(from #dc3545 r g b / 0.9);
+                        background: rgb(from var(--color-error) r g b / 0.9);
                         transform: translateY(-1px);
                     }
                 }
@@ -694,7 +694,7 @@ main {
                         .details-btn {
                             background: var(--color-secondary);
                             border: none;
-                            color: white;
+                            color: var(--color-white);
                             padding: 10px 16px;
                             border-radius: 8px;
                             cursor: pointer;
@@ -768,11 +768,11 @@ main {
                 transition: all 0.3s ease;
 
                 &.eligible {
-                    border-color: rgb(from green r g b / 0.3);
-                    background: rgb(from green r g b / 0.05);
+                    background: color-mix(in srgb, var(--color-success) 5%, var(--color-white));
+                    border-color: rgb(from var(--color-primary) r g b / 0.3);
 
                     .stat-value {
-                        color: #28a745;
+                        color: color-mix(in srgb, var(--color-black), var(--color-success) 80%);
                     }
                 }
 
@@ -868,18 +868,18 @@ main {
                             }
 
                             &.eligible {
-                                background: rgb(from green r g b / 0.02);
+                                background: color-mix(in srgb, var(--color-success) 5%, var(--color-white));
 
                                 &:hover {
-                                    background: rgb(from green r g b / 0.05);
+                                    background: color-mix(in srgb, var(--color-success) 10%, var(--color-white));
                                 }
                             }
 
                             &.not-eligible {
-                                background: rgb(from red r g b / 0.01);
+                                background: color-mix(in srgb, var(--color-error) 5%, var(--color-white));
 
                                 &:hover {
-                                    background: rgb(from red r g b / 0.03);
+                                    background: color-mix(in srgb, var(--color-error) 10%, var(--color-white));
                                 }
                             }
 
@@ -956,13 +956,13 @@ main {
             font-weight: 600;
 
             &.eligible {
-                background: #28a745;
-                color: white;
+                background: color-mix(in srgb, var(--color-black) 10%, var(--color-success));
+                color: var(--color-white);
             }
 
             &.not-eligible {
-                background: #dc3545;
-                color: white;
+                background: color-mix(in srgb, var(--color-black) 10%, var(--color-error));
+                color: var(--color-white);
             }
         }
 

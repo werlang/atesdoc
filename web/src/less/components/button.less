@@ -9,7 +9,7 @@ button {
     padding: 12px 32px;
     border: 2px solid rgb(from var(--color-secondary) r g b / 1);
     border-radius: 8px;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    box-shadow: 0px 2px 5px rgb(from var(--color-black) r g b / 0.1);
     cursor: pointer;
     box-sizing: border-box;
     transition: all 0.2s ease;
@@ -24,7 +24,7 @@ button {
     &:disabled,
     &.default:disabled {
         border-color: transparent;
-        background-color: #727272;
+        background-color: rgb(from var(--color-text) r g b / 0.6);
         box-shadow: none;
         cursor: default;
         cursor: not-allowed;

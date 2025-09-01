@@ -101,11 +101,22 @@ closeStream = await wsserver.stream('get_books', {
 - **Template Integration**: Mustache rendering with `templateRender` middleware
 
 ### Design System (Material Design 3 Influenced)
-- **Color Palette**: Earth tones with CSS custom properties
+- **Color Palette**: Earth tones with CSS custom properties (ALL COLORS MUST USE VARIABLES)
   - Primary: `--color-primary: #5b775a` (forest green)
   - Secondary: `--color-secondary: #906442` (warm brown)
   - Background: `--color-background: #faf7f4` (warm cream)
   - Text: `--color-text: #474c54` (charcoal)
+  - White: `--color-white: #ffffff`
+  - Black: `--color-black: #000000`
+  - Link: `--color-link: #248cd3` (blue)
+  - Success: `--color-success: #28a745` (dark green)
+  - Error: `--color-error: #dc3545` (dark red)
+  - **🚨 NEVER use hardcoded colors - always reference these variables**
+  - **For muted/disabled effects**: Use `rgb(from var(--color-text) r g b / opacity)` syntax
+  - **For skeleton loading**: Use `rgb(from var(--color-text) r g b / 0.08)` with background color gradients
+  - **For light backgrounds**: Use `color-mix(in srgb, var(--color-name) percentage%, var(--color-white))`
+  - **For dark variations**: Use `color-mix(in srgb, var(--color-name) percentage%, var(--color-black))`
+  - **Color Usage Guidelines**: Use base colors for text/borders, color-mix with white/black for backgrounds
 - **Elevation**: Layered shadows with hover transforms (`translateY(-1px)`)
 - **Border Radius**: Consistent 8px for elements, 12px for cards, 16px for containers
 - **Transitions**: Material Design cubic-bezier (`cubic-bezier(0.4, 0, 0.2, 1)`)
@@ -309,6 +320,18 @@ state.onUpdate((newState) => {
 ### CSS Architecture
 - **Component-based**: Each component has its own LESS file
 - **Custom Properties**: Consistent color and spacing variables
+- **🚨 CRITICAL COLOR RULE**: **NEVER use hardcoded colors** - ALL colors must use CSS custom properties (variables)
+  - ✅ CORRECT: `color: var(--color-primary)`, `background: rgb(from var(--color-white) r g b / 0.5)`
+  - ✅ CORRECT: `background: color-mix(in srgb, var(--color-success) 10%, var(--color-white))`
+  - ❌ FORBIDDEN: `color: #5b775a`, `background: rgba(0, 0, 0, 0.1)`, `border: 1px solid red`
+  - ❌ FORBIDDEN: Named colors like `white`, `black`, `red`, `green`, `blue`, etc.
+  - ❌ FORBIDDEN: Hardcoded hex colors like `#ffffff`, `#000000`, `#28a745`
+  - ❌ FORBIDDEN: Direct rgba/rgb values like `rgba(0, 0, 0, 0.5)`, `rgb(255, 255, 255)`
+  - Use `rgb(from var(--color-name) r g b / opacity)` for alpha transparency
+  - Use `color-mix(in srgb, var(--color-name) percentage%, var(--color-white/black))` for lighter/darker variations
+  - For muted/disabled effects: Use `rgb(from var(--color-text) r g b / 0.6)` instead of separate variables
+  - For skeleton loading: Use `rgb(from var(--color-text) r g b / 0.08)` for shimmer effects
+  - All color values must be defined in `/web/src/less/common.less` as CSS custom properties
 - **Mobile-First Responsive Design**: 
   - Start with mobile styles as base (320px+)
   - Progressive enhancement for larger screens
