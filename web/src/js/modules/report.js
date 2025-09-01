@@ -310,6 +310,10 @@ export default function(wsserver, state) {
                     </div>
                 `).join('');
 
+                // Calculate totals from semester data
+                const totalBlocks = Object.values(book.report.semesters).reduce((sum, semester) => sum + (semester.blocks || 0), 0);
+                const totalHours = Object.values(book.report.semesters).reduce((sum, semester) => sum + (semester.hours || 0), 0);
+
                 const modal = new Modal(`
                     <h2>${book.book} - ${book.class}</h2>
                     <div class="book-report-summary">
@@ -330,6 +334,24 @@ export default function(wsserver, state) {
                                 <div class="summary-stat-content">
                                     <span class="summary-stat-label">Aulas Elegíveis</span>
                                     <span class="summary-stat-value">${book.report.eligibleLessons.length}</span>
+                                </div>
+                            </div>
+                            <div class="summary-stat">
+                                <div class="summary-stat-icon">
+                                    <i class="fa-solid fa-chalkboard-user"></i>
+                                </div>
+                                <div class="summary-stat-content">
+                                    <span class="summary-stat-label">Total de Períodos</span>
+                                    <span class="summary-stat-value">${totalBlocks}</span>
+                                </div>
+                            </div>
+                            <div class="summary-stat">
+                                <div class="summary-stat-icon">
+                                    <i class="fa-solid fa-clock"></i>
+                                </div>
+                                <div class="summary-stat-content">
+                                    <span class="summary-stat-label">Total de Horas</span>
+                                    <span class="summary-stat-value">${totalHours}h</span>
                                 </div>
                             </div>
                         </div>
@@ -400,7 +422,7 @@ export default function(wsserver, state) {
             `;
         }).join('');
 
-        const eligibleCount = book.report.eligibleLessons.length;
+        const eligibleCount = semesterEligibleLessons.length;
         const totalPeriods = semesterLessons.reduce((sum, lesson) => sum + (lesson.blocks || 1), 0);
         const eligiblePeriods = semesterEligibleLessons.reduce((sum, lesson) => sum + (lesson.blocks || 1), 0);
 

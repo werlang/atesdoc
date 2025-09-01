@@ -533,7 +533,7 @@ main {
             gap: 16px;
             margin-bottom: 32px;
 
-            // Enhance for larger screens
+            // Enhance for larger screens - 2x2 grid
             @media @size-600 {
                 grid-template-columns: repeat(2, 1fr);
             }
@@ -547,6 +547,11 @@ main {
                 align-items: center;
                 gap: 16px;
                 transition: all 0.3s ease;
+
+                @media @size-600 {
+                    padding: 20px;
+                    gap: 16px;
+                }
 
                 &:hover {
                     border-color: rgb(from var(--color-primary) r g b / 0.3);
