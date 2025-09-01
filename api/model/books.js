@@ -27,9 +27,12 @@ export default class Book {
                 lessonObject.topic = lesson[5];
             }
             else {
-                lessonObject.professor = null;
+                lessonObject.professor = this.professor;
                 lessonObject.topic = lesson[4];
             }
+
+            lessonObject.isEligible = lessonObject.professor === null || lessonObject.professor.includes(this.professor);
+
             return lessonObject;
         });
 
@@ -81,7 +84,8 @@ export default class Book {
         const report = {};
         
         report.lessons = lessons;
-        report.eligibleLessons = lessons.filter(lesson => lesson.professor === null || lesson.professor === this.professor);
+        report.eligibleLessons = lessons.filter(lesson => lesson.isEligible);
+        
         report.semesters = {};
 
         report.eligibleLessons.forEach(lesson => {
