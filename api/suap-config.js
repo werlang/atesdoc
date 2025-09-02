@@ -52,5 +52,13 @@ export default {
         ready: '#table_registro_aula, .box .msg.alert',
         rows: '#table_registro_aula tr',
         data: (tr) => Array.from(tr.querySelectorAll('th, td')).map(td => td.textContent.trim()),
-    }
+    },
+    programMapping: {
+        INF: 'CH.INF_I - Curso Técnico em Informática - Integrado (CH 2008) (Campus Charqueadas)',
+        MCT: 'CH.MCT_I - Curso Técnico em Mecatrônica - Integrado (CH 2007) (Campus Charqueadas)',
+        LP: 'CH.LP_ - Curso de Licenciatura em Pedagogia 2023/1- Câmpus Charqueadas (Campus Charqueadas)',
+        ECA: 'CH.ECA - Curso Superior em Engenharia de Controle e Automação (Campus Charqueadas)',
+        FMC: 'CH.FMC_EJA - Técnico em Fabricação Mecânica - EJA - Charqueadas (Campus Charqueadas)',
+        TSI: 'CH.TSI - Curso Superior de Tecnologia em Sistemas para Internet (Campus Charqueadas)',
+    },
 }
