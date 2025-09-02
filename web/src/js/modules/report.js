@@ -325,10 +325,18 @@ export default function(wsserver, state) {
         const backBtn = reportContainer.querySelector('.error-actions .back-btn');
 
         retryBtn?.addEventListener('click', () => {
+            currentReportData.books.forEach(book => {
+                book.fetched = false;
+                book.report = null;
+            });
             initializeReportGeneration();
         });
 
         backBtn?.addEventListener('click', () => {
+            currentReportData.books.forEach(book => {
+                book.fetched = false;
+                book.report = null;
+            });
             state.update({ step: 3 });
         });
     }

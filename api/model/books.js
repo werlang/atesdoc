@@ -1,5 +1,6 @@
 import SUAPScraper from '../helpers/scraper.js';
 import suapConfig from '../suap-config.js';
+import Semester from './semester.js';
 
 export default class Book {
 
@@ -34,7 +35,7 @@ export default class Book {
                 professor: colMap[3] !== -1 ? lesson[colMap[3]] : this.professor,
             };
 
-            lessonObject.semester = lessonObject.date.getFullYear() + '.' + (lessonObject.date.getMonth() < 6 ? '1' : '2');
+            lessonObject.semester = Semester.fromDate(lessonObject.date).toString();
             lessonObject.isEligible = lessonObject.professor === null || lessonObject.professor.includes(this.professor);
 
             return lessonObject;
@@ -125,6 +126,13 @@ export default class Book {
     static async fetch({ professor, semesters }, reply) {
         await SUAPScraper.initialize();
 
+        // always fetch 1 semester before
+        const firstSemester = Semester.getFirst(semesters);
+        const previousSemester = firstSemester.getPrevious().toString();
+        if (!semesters.includes(previousSemester)) {
+            semesters.push(previousSemester);
+        }
+
         let books = [];
         for (const semester of semesters) {
             const url = `${suapConfig.baseUrl}/${suapConfig.bookSearch.url.base}/${professor}/?${suapConfig.bookSearch.url.query}${semester}`;
@@ -145,7 +153,6 @@ export default class Book {
                 });
                 return books;
             }, suapConfig.bookSearch);
-            data = data.filter(book => book.semester === semester);
             books.push(...data);
         }
         books = books.filter(book => book.link && book.semester).map(book => ({
