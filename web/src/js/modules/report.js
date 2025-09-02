@@ -1,3 +1,4 @@
+import Button from "../components/button.js";
 import Toast from "../components/toast.js";
 import showBookDetails from "./report-book.js";
 import generateDocument from "./report-document.js";
@@ -121,16 +122,14 @@ export default function(wsserver, state) {
 
         // Add event listeners for action buttons
         const backBtn = container.querySelector('.back-btn');
-        const generateBtn = container.querySelector('.generate-btn');
-
         backBtn?.addEventListener('click', () => {
             if (closeStream) closeStream();
             state.update({ step: 3 });
         });
 
-        generateBtn?.addEventListener('click', () => {
-            generateDocument({ ...currentReportData, books: currentReportData.books.filter(book => book.checked && book.report) });
-        });
+        new Button({ element: container.querySelector('.generate-btn') }).click(async () => {
+            await generateDocument(wsserver, { ...currentReportData, books: currentReportData.books.filter(book => book.checked && book.report) });
+        })
     }
 
     let isFetching = false;

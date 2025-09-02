@@ -28,7 +28,7 @@
 // }
 
 
-export default function generateDocument(data) {
+export default async function generateDocument(wsserver, data) {
     // console.log(data);
 
     const formattedData = {
@@ -90,5 +90,33 @@ export default function generateDocument(data) {
         }
     }
 
-    console.log(formattedData);
+    // console.log(formattedData);
+    let closeStream;
+    await new Promise(async (resolve, reject) => {
+        closeStream = await wsserver.stream('post_report', {
+            report: formattedData,
+        }, message => {
+            console.log(new Date().toISOString(), message);
+    
+            const pdfData = message.pdfData;
+            if (pdfData) {
+                const link = document.createElement('a');
+                link.href = `data:${message.mimeType};base64,${pdfData}`;
+                link.download = message.filename || 'report.pdf';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                resolve(message);
+            }
+    
+            if (message.error) {
+                console.error('Error generating PDF:', message.error);
+                reject(message.error);
+                if (closeStream) closeStream();
+            }
+        });
+    });
+    closeStream();
 }
+
+// TODO: send the data to ws endpoint to report model. Model should generate formatted data and send back end pdf.
