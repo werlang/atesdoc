@@ -51,6 +51,6 @@ export default {
         url: 'edu/registrar_chamada',
         ready: '#table_registro_aula, .box .msg.alert',
         rows: '#table_registro_aula tr',
-        data: (tr) => Array.from(tr.querySelectorAll('td')).map(td => td.textContent.trim()),
+        data: (tr) => Array.from(tr.querySelectorAll('th, td')).map(td => td.textContent.trim()),
     }
 }

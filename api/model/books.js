@@ -13,24 +13,26 @@ export default class Book {
     }
 
     formatLessons(data) {
+        // console.log(data);
         let lessons = data.filter(lesson => lesson.length);
+
+        const mapping = (tr) => [
+            tr?.findIndex(th => th.includes('Quantidade')),
+            tr?.findIndex(th => th.includes('Data')),
+            tr?.findIndex(th => th.includes('Conteúdo')),
+            tr?.findIndex(th => th.includes('Professor')),
+        ];
+        const colMap = mapping(lessons.shift());
+
         lessons = lessons.map(lesson => {
             const lessonObject = {
-                blocks: parseInt(lesson[2].split(' ')[0]),
-                date: new Date(lesson[3].split('/').reverse().join('-')),
+                blocks: parseInt(lesson[colMap[0]].split(' ')[0]),
+                date: new Date(lesson[colMap[1]].split('/').reverse().join('-')),
+                topic: lesson[colMap[2]],
+                professor: colMap[3] !== -1 ? lesson[colMap[3]] : this.professor,
             };
 
             lessonObject.semester = lessonObject.date.getFullYear() + '.' + (lessonObject.date.getMonth() < 6 ? '1' : '2');
-
-            if (lesson.length === 6) {
-                lessonObject.professor = lesson[4];
-                lessonObject.topic = lesson[5];
-            }
-            else {
-                lessonObject.professor = this.professor;
-                lessonObject.topic = lesson[4];
-            }
-
             lessonObject.isEligible = lessonObject.professor === null || lessonObject.professor.includes(this.professor);
 
             return lessonObject;
@@ -81,6 +83,7 @@ export default class Book {
 
     generateReport(lessons) {
         const blockDuration = 45; // minutes
+        const weeksInSemester = 20; // weeks
         const report = {};
         
         report.lessons = lessons;
@@ -100,7 +103,7 @@ export default class Book {
             lessonReport.lessons.push(lesson);
             lessonReport.blocks += lesson.blocks;
             lessonReport.hours = lessonReport.blocks * blockDuration / 60;
-
+            lessonReport.weekly = lessonReport.blocks / weeksInSemester;
             report.semesters[lesson.semester] = lessonReport;
         });
 
@@ -126,7 +129,7 @@ export default class Book {
             console.log(`Fetching books for professor ${professor} in semester ${semester}: ${url}`);
             await SUAPScraper.goto(url, suapConfig.bookSearch.ready, reply);
         
-            const data = await SUAPScraper.evaluate((template) => {
+            let data = await SUAPScraper.evaluate((template) => {
                 const books = [];
         
                 document.querySelectorAll(template.rows).forEach(tr => {
@@ -140,6 +143,7 @@ export default class Book {
                 });
                 return books;
             }, suapConfig.bookSearch);
+            data = data.filter(book => book.semester === semester);
             books.push(...data);
         }
         books = books.filter(book => book.link && book.semester).map(book => ({
@@ -160,5 +164,3 @@ export default class Book {
         }));
     }
 }
-
-// TODO: need to request one semester before and one after the selected ones to get all lessons

@@ -19,6 +19,7 @@ export default function(wsserver, state) {
                     <p>Não foram encontrados diários para os semestres selecionados.</p>
                 </div>
             `;
+            renderProgressSummary([]);
             return;
         }
 
