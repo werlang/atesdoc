@@ -5,6 +5,7 @@ import puppeteer from 'puppeteer-core';
 import SUAPScraper from "./helpers/scraper.js";
 import fs from 'fs';
 import path from 'path';
+import Report from "./model/report.js";
 
 new Route('get_professors', async (payload, reply) => {
     const professors = await Professor.search(payload.query, reply);
@@ -32,59 +33,19 @@ new Route('get_report', async (payload, reply) => {
 });
 
 new Route('post_report', async (payload, reply) => {
-    console.log('Generating PDF report...', payload);
     
     try {
-        // Connect to the browserless Chrome container
-        const browser = await puppeteer.connect({
-            browserURL: `http://chrome:${SUAPScraper.chromePort}`,
-        });
-        
-        const page = await browser.newPage();
-        
-        // Read the HTML file from disk
-        const htmlPath = path.join(process.cwd(), 'foo.html');
-        
-        if (!fs.existsSync(htmlPath)) {
-            throw new Error(`HTML file not found at: ${htmlPath}`);
-        }
-        
-        const htmlContent = fs.readFileSync(htmlPath, 'utf8');
-        
-        // Set the HTML content
-        await page.setContent(htmlContent, {
-            waitUntil: 'networkidle0'
-        });
-        
-        // Generate PDF
-        const pdfBuffer = await page.pdf({
-            format: 'A4',
-            printBackground: true,
-            margin: {
-                top: '20px',
-                right: '20px',
-                bottom: '20px',
-                left: '20px'
-            }
-        });
-        
-        await page.close();
-        
-        // Convert Buffer to Base64
-        const pdfBase64 = Buffer.from(pdfBuffer).toString('base64');
-        
-        // Generate filename with timestamp
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const filename = `relatorio_ensino_${timestamp}.pdf`;
-        
-        console.log(`PDF generated successfully - Size: ${pdfBuffer.length} bytes`);
+        const report = new Report(payload.report);
+        console.log('Generating PDF report...', report.toJSON(true));
+
+        const { pdf, filename } = await report.toPDF();
         
         return { 
             success: true, 
-            pdfData: pdfBase64,
+            pdfData: pdf,
             filename: filename,
             mimeType: 'application/pdf',
-            size: pdfBuffer.length,
+            size: pdf.length,
             message: 'PDF generated and ready for download'
         };
         

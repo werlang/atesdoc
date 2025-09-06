@@ -1,6 +1,8 @@
 import puppeteer from 'puppeteer-core';
 import suapConfig from '../suap-config.js';
 import CustomError from './error.js';
+import path from 'path';
+import fs from 'fs';
 
 export default class SUAPScraper {
     
@@ -146,5 +148,47 @@ export default class SUAPScraper {
             await SUAPScraper.connect();
         }
         return SUAPScraper;
+    }
+
+    static async generatePDF(templatePath, content) {
+        await SUAPScraper.initialize();
+
+        // Read the HTML template from disk
+        const htmlPath = path.join(process.cwd(), 'template', templatePath);
+
+        if (!fs.existsSync(htmlPath)) {
+            throw new Error(`HTML template not found at: ${htmlPath}`);
+        }
+
+        let htmlContent = fs.readFileSync(htmlPath, 'utf8');
+
+        // Replace placeholders in the HTML content with actual data
+        for (const [key, value] of Object.entries(content)) {
+            htmlContent = htmlContent.replace(new RegExp(`{{${key}}}`, 'g'), value);
+        }
+
+        // Set the HTML content
+        await SUAPScraper.page.setContent(htmlContent, {
+            waitUntil: 'networkidle0'
+        });
+
+        // Generate PDF
+        const pdfBuffer = await SUAPScraper.page.pdf({
+            format: 'A4',
+            printBackground: true,
+            margin: {
+                top: '20px',
+                right: '20px',
+                bottom: '20px',
+                left: '20px'
+            }
+        });
+
+        // Convert Buffer to Base64
+        const pdfBase64 = Buffer.from(pdfBuffer).toString('base64');
+
+        console.log(`PDF generated successfully - Size: ${pdfBuffer.length} bytes`);
+
+        return pdfBase64;
     }
 }
