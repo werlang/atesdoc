@@ -1,3 +1,4 @@
+import DocumentBuilder from '../helpers/document-builder.js';
 import SUAPScraper from '../helpers/scraper.js';
 
 export default class Report {
@@ -23,11 +24,8 @@ export default class Report {
         const timestamp = new Date().toISOString().split('.')[0].replace(/[:T]/g, '-');
         const filename = `report_${timestamp}_${this.professor.siape}.pdf`;
 
-        const pdf = await SUAPScraper.generatePDF('report.html', {
-            professorName: this.professor.name,
-            professorSiape: this.professor.siape,
-        });
-
+        const content = new DocumentBuilder(this.get()).build();
+        const pdf = await SUAPScraper.generatePDF(content);
         return { pdf, filename };
     }
     

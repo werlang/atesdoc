@@ -150,45 +150,40 @@ export default class SUAPScraper {
         return SUAPScraper;
     }
 
-    static async generatePDF(templatePath, content) {
+    static async generatePDF(text) {
         await SUAPScraper.initialize();
 
-        // Read the HTML template from disk
-        const htmlPath = path.join(process.cwd(), 'template', templatePath);
-
-        if (!fs.existsSync(htmlPath)) {
-            throw new Error(`HTML template not found at: ${htmlPath}`);
+        try {
+            // Set the HTML content
+            await SUAPScraper.page.setContent(text, {
+                waitUntil: 'networkidle0'
+            });
+    
+            // Generate PDF
+            const pdfBuffer = await SUAPScraper.page.pdf({
+                format: 'A4',
+                printBackground: true,
+                margin: {
+                    top: '20px',
+                    right: '20px',
+                    bottom: '20px',
+                    left: '20px'
+                }
+            });
+    
+            // Convert Buffer to Base64
+            const pdfBase64 = Buffer.from(pdfBuffer).toString('base64');
+    
+            console.log(`PDF generated successfully - Size: ${pdfBuffer.length} bytes`);
+    
+            return pdfBase64;
         }
-
-        let htmlContent = fs.readFileSync(htmlPath, 'utf8');
-
-        // Replace placeholders in the HTML content with actual data
-        for (const [key, value] of Object.entries(content)) {
-            htmlContent = htmlContent.replace(new RegExp(`{{${key}}}`, 'g'), value);
+        catch (error) {
+            console.error(error);
+            SUAPScraper.connected = false;
+            await SUAPScraper.connect();
+            console.log('Reconnected to browser, trying to generate PDF again...');
+            return await SUAPScraper.generatePDF(text);
         }
-
-        // Set the HTML content
-        await SUAPScraper.page.setContent(htmlContent, {
-            waitUntil: 'networkidle0'
-        });
-
-        // Generate PDF
-        const pdfBuffer = await SUAPScraper.page.pdf({
-            format: 'A4',
-            printBackground: true,
-            margin: {
-                top: '20px',
-                right: '20px',
-                bottom: '20px',
-                left: '20px'
-            }
-        });
-
-        // Convert Buffer to Base64
-        const pdfBase64 = Buffer.from(pdfBuffer).toString('base64');
-
-        console.log(`PDF generated successfully - Size: ${pdfBuffer.length} bytes`);
-
-        return pdfBase64;
     }
 }

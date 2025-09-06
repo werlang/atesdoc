@@ -158,7 +158,6 @@ export default class Book {
         books = books.filter(book => book.link && book.semester).map(book => ({
             ...book,
             book: book.book.split(' - ')[2]?.trim(),
-            component: book.book.trim(),
             class: (m => m ? `${m[2]}-${m[1]}${m[3]}` : '-')(book.class.match(/\d+\.(\d{1,2})\.CH\.([A-Z]{1,3}).*([A-Z])/)),
         }));
         books.forEach(book => book.program = suapConfig.programMapping[book.class.split('-')[0]]);
@@ -167,7 +166,6 @@ export default class Book {
         console.log(books);
         return books.map(book => new Book({
             id: book.link.match(/[meu_]{0,1}diario\/(\d+)\//)?.[1],
-            component: book.component,
             professor,
             semester: book.semester,
             link: book.link,

@@ -27,6 +27,8 @@
 //     },
 // }
 
+import Toast from "../components/toast.js";
+
 
 export default async function generateDocument(wsserver, data) {
     // console.log(data);
@@ -49,7 +51,6 @@ export default async function generateDocument(wsserver, data) {
                 formattedData.semesters[semester].books.push({
                     program: book.program,
                     book: book.book,
-                    course: book.component,
                     classes: {
                         weekly: book.report.semesters[semester].weekly,
                         semester: book.report.semesters[semester].blocks,
@@ -67,7 +68,7 @@ export default async function generateDocument(wsserver, data) {
             if (sameBooks.length > 0) {
                 newBooks.push({
                     program: sameBooks[0].program,
-                    course: sameBooks[0].course,
+                    course: sameBooks[0].book,
                     classes: {
                         weekly: sameBooks.reduce((acc, book) => acc + book.classes.weekly, 0) / sameBooks.length,
                         semester: sameBooks.reduce((acc, book) => acc + book.classes.semester, 0) / sameBooks.length,
@@ -93,11 +94,18 @@ export default async function generateDocument(wsserver, data) {
     // console.log(formattedData);
     let closeStream;
     await new Promise(async (resolve, reject) => {
+        
+        let toast = null;
         closeStream = await wsserver.stream('post_report', {
             report: formattedData,
         }, message => {
             console.log(new Date().toISOString(), message);
-    
+
+            if (message.status === 'processing') {
+                if (toast) toast.close();
+                toast = Toast.info('Gerando documento PDF...', null);
+            }
+
             const pdfData = message.pdfData;
             if (pdfData) {
                 const link = document.createElement('a');
@@ -107,16 +115,20 @@ export default async function generateDocument(wsserver, data) {
                 link.click();
                 document.body.removeChild(link);
                 resolve(message);
+                if (closeStream) closeStream();
+                if (toast) toast.close();
+                Toast.success('PDF gerado com sucesso!');
             }
     
             if (message.error) {
                 console.error('Error generating PDF:', message.error);
                 reject(message.error);
                 if (closeStream) closeStream();
+                if (toast) toast.close();
+                Toast.error(`Erro ao gerar PDF: ${message.error}`);
             }
+
         });
     });
     closeStream();
 }
-
-// TODO: send the data to ws endpoint to report model. Model should generate formatted data and send back end pdf.

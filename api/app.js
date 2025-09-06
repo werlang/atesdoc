@@ -1,10 +1,6 @@
 import Route from "./helpers/router.js";
 import Professor from "./model/professor.js";
 import Book from "./model/books.js";
-import puppeteer from 'puppeteer-core';
-import SUAPScraper from "./helpers/scraper.js";
-import fs from 'fs';
-import path from 'path';
 import Report from "./model/report.js";
 
 new Route('get_professors', async (payload, reply) => {
