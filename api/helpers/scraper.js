@@ -1,8 +1,6 @@
 import puppeteer from 'puppeteer-core';
 import suapConfig from '../suap-config.js';
 import CustomError from './error.js';
-import path from 'path';
-import fs from 'fs';
 
 export default class SUAPScraper {
     

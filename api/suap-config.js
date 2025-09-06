@@ -61,4 +61,8 @@ export default {
         FMC: 'CH.FMC_EJA - Técnico em Fabricação Mecânica - EJA - Charqueadas (Campus Charqueadas)',
         TSI: 'CH.TSI - Curso Superior de Tecnologia em Sistemas para Internet (Campus Charqueadas)',
     },
+    documentBuilder: {
+        city: 'Charqueadas',
+        depex: 'Lisiane Araujo Pinheiro',
+    }
 }

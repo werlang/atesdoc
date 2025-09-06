@@ -1,3 +1,4 @@
+import suapConfig from '../suap-config.js';
 import path from 'path';
 import fs from 'fs';
 
@@ -30,7 +31,7 @@ export default class DocumentBuilder {
     getBook(book, index, programClasses) {
         return this.replaceVariables(index === 0 ? this.template.courseFirstRow : this.template.courseRow, {
             programsLength: programClasses,
-            programName: book.program,
+            programName: book.program || '---',
             name: book.course,
             classes: book.classes.quantity,
             weekly: book.classes.weekly?.toFixed(2).replace('.',','),
@@ -66,8 +67,8 @@ export default class DocumentBuilder {
             professorSiape: data.professor.siape,
             semesters: Object.keys(data.semesters).sort().map(semester => semester.replace(/\./g, '/')).join(', '),
             semestersTables: semestersDocument,
-            depex: 'Lisiane Araujo Pinheiro',
-            city: 'Charqueadas',
+            depex: suapConfig.documentBuilder.depex,
+            city: suapConfig.documentBuilder.city,
             day: new Date().getDate(),
             month: new Date().toLocaleString('pt-br', { month: 'long' }),
             year: new Date().getFullYear(),
