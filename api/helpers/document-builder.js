@@ -9,6 +9,8 @@ export default class DocumentBuilder {
         const templatePath = `template`;
 
         this.template = {
+            css: fs.readFileSync(path.join(process.cwd(), templatePath, 'style.css'), 'utf-8'),
+            arms: fs.readFileSync(path.join(process.cwd(), templatePath, 'arms.png'), { encoding: 'base64' }),
             root: fs.readFileSync(path.join(process.cwd(), templatePath, 'document.html'), 'utf-8'),
             table: fs.readFileSync(path.join(process.cwd(), templatePath, 'table.html'), 'utf-8'),
             courseFirstRow: fs.readFileSync(path.join(process.cwd(), templatePath, 'course-1st-row.html'), 'utf-8'),
@@ -42,7 +44,7 @@ export default class DocumentBuilder {
 
     build() {
         const data = this.data;
-        const semestersDocument = Object.entries(data.semesters).sort().map(([semester, semesterData]) => this.replaceVariables(this.template.table, {
+        const semestersDocument = Object.entries(data.semesters).sort().map(([semester, semesterData]) => !semesterData.books ? '' : this.replaceVariables(this.template.table, {
             semester: semester.replace(/\./g, '/'),
             booksTable: semesterData.books
                 .toSorted((a,b) => (a.program + a.course).localeCompare(b.program + b.course))
@@ -63,9 +65,11 @@ export default class DocumentBuilder {
         })).join('');
 
         const rootDocument = this.replaceVariables(this.template.root, {
+            css: `<style>${this.template.css}</style>`,
+            arms: `data:image/png;base64,${this.template.arms}`,
             professorName: data.professor.name,
             professorSiape: data.professor.siape,
-            semesters: Object.keys(data.semesters).sort().map(semester => semester.replace(/\./g, '/')).join(', '),
+            semesters: Object.keys(data.semesters).filter(semester => data.semesters[semester].books).sort().map(semester => semester.replace(/\./g, '/')).join(', '),
             semestersTables: semestersDocument,
             depex: suapConfig.documentBuilder.depex,
             city: suapConfig.documentBuilder.city,

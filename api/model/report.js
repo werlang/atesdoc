@@ -20,13 +20,19 @@ export default class Report {
     }
 
     async toPDF() {
+        const { html, filename } = this.toHTML();
+        console.log(html);
+        const pdf = await SUAPScraper.generatePDF(html);
+        return { pdf, filename: filename.replace('.html', '.pdf') };
+    }
+
+    toHTML() {
         // Generate filename with timestamp
         const timestamp = new Date().toISOString().split('.')[0].replace(/[:T]/g, '-');
-        const filename = `report_${timestamp}_${this.professor.siape}.pdf`;
+        const filename = `report_${timestamp}_${this.professor.siape}.html`;
 
-        const content = new DocumentBuilder(this.get()).build();
-        const pdf = await SUAPScraper.generatePDF(content);
-        return { pdf, filename };
+        const html = new DocumentBuilder(this.get()).build();
+        return { html, filename };
     }
     
 }

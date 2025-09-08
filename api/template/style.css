@@ -1,0 +1,388 @@
+/* Modern CSS for SUAP Teacher Scraper Document Templates */
+
+/* CSS Custom Properties - Modern Units */
+:root {
+  /* Typography */
+  --font-calibri: 'Calibri', 'Arial', sans-serif;
+  --font-arial: 'Arial', sans-serif;
+  
+  /* Colors */
+  --color-black: #000000;
+  --color-blue: #0000ff;
+  --color-white: #ffffff;
+  --color-gray-light: #f5f5f5;
+  
+  /* Borders */
+  --border-solid: 1px solid var(--color-black);
+  --border-thick: 2px solid var(--color-black);
+  
+  /* Spacing - Using rem for scalability */
+  --spacing-xs: 0.25rem;   /* 4px at 16px base */
+  --spacing-sm: 0.5rem;    /* 8px */
+  --spacing-md: 1rem;      /* 16px */
+  --spacing-lg: 1.5rem;    /* 24px */
+  --spacing-xl: 2rem;      /* 32px */
+  --spacing-2xl: 3rem;     /* 48px */
+  
+  /* Font sizes - Using rem for scalability */
+  --font-size-xs: 0.625rem;    /* 10px */
+  --font-size-sm: 0.75rem;     /* 12px */
+  --font-size-base: 1rem;      /* 16px */
+  --font-size-lg: 1.125rem;    /* 18px */
+  --font-size-xl: 1.25rem;     /* 20px */
+  
+  /* Line heights - Unitless for better scaling */
+  --line-height-tight: 1.15;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+  
+  /* A4 Dimensions and margins */
+  --page-width: 210mm;      /* A4 width */
+  --page-height: 297mm;     /* A4 height */
+  --page-margin: 20mm;      /* Standard margin */
+  --page-margin-small: 15mm; /* Smaller margin for print */
+  
+  /* Content widths */
+  --content-max-width: calc(var(--page-width) - (var(--page-margin) * 2));
+  --table-max-width: min(100%, 170mm); /* Optimized for A4 */
+}
+
+/* Document Structure - Optimized for A4 */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px; /* Base font size */
+  font-family: var(--font-calibri);
+  line-height: var(--line-height-normal);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--color-white);
+  color: var(--color-black);
+  max-width: var(--page-width);
+  margin: 0 auto;
+  min-height: var(--page-height);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header Styles - A4 Optimized */
+header {
+  flex-shrink: 0;
+  padding: var(--spacing-lg) var(--page-margin);
+  
+  .suap-header {
+    text-align: center;
+    max-width: var(--content-max-width);
+    margin: 0 auto;
+    
+    img {
+      width: 4rem;    /* ~64px - scalable */
+      height: 4.25rem; /* ~68px - maintain aspect ratio */
+      display: block;
+      margin: 0 auto var(--spacing-md);
+      object-fit: contain;
+    }
+    
+    .header-text {
+      font-size: var(--font-size-sm);
+      font-family: var(--font-calibri);
+      font-weight: 600;
+      
+      div {
+        margin: var(--spacing-xs) 0;
+        line-height: var(--line-height-tight);
+      }
+    }
+  }
+}
+
+/* Main Content - A4 Optimized */
+main {
+  flex: 1;
+  padding: var(--spacing-xl) var(--page-margin);
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  width: 100%;
+  
+  h1.title {
+    text-align: center;
+    font-size: var(--font-size-lg);
+    font-family: var(--font-arial);
+    font-weight: bold;
+    text-decoration: underline;
+    color: var(--color-black);
+    margin: var(--spacing-xl) 0 var(--spacing-lg);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .body-text {
+    text-align: justify;
+    font-size: var(--font-size-base);
+    font-family: var(--font-arial);
+    line-height: var(--line-height-tight);
+    margin: var(--spacing-md) 0;
+    text-indent: 0;
+    
+    &.right-aligned {
+      text-align: right;
+      text-indent: 0;
+    }
+  }
+  
+  .signature-section {
+    margin-top: var(--spacing-2xl);
+    margin-bottom: var(--spacing-xl);
+  }
+  
+  .signature-line {
+    text-align: center;
+    font-size: var(--font-size-sm);
+    font-family: var(--font-arial);
+    line-height: var(--line-height-tight);
+    color: var(--color-black);
+    margin: calc(var(--spacing-xl) * 2) 0 var(--spacing-xs);
+    font-weight: normal;
+  }
+  
+  .signature-title {
+    text-align: center;
+    font-size: var(--font-size-sm);
+    font-family: var(--font-arial);
+    line-height: var(--line-height-tight);
+    color: var(--color-black);
+    margin: var(--spacing-base) 0;
+    font-weight: normal;
+  }
+}
+
+/* Semester Section - A4 Optimized */
+.semester-section {
+  margin: var(--spacing-lg) 0;
+  page-break-inside: avoid;
+  
+  h2.semester-title {
+    font-size: var(--font-size-base);
+    font-family: var(--font-arial);
+    font-weight: bold;
+    line-height: var(--line-height-normal);
+    margin: var(--spacing-lg) 0 var(--spacing-sm);
+    color: var(--color-black);
+    text-transform: uppercase;
+  }
+}
+
+/* Table Styles - A4 Print Optimized */
+.courses-table {
+  border-collapse: collapse;
+  width: 100%;
+  max-width: var(--table-max-width);
+  margin: var(--spacing-md) auto;
+  font-family: var(--font-arial);
+  page-break-inside: avoid;
+  table-layout: fixed; /* Better for print */
+  
+  th, td {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border: var(--border-solid);
+    text-align: center;
+    vertical-align: middle;
+    font-size: var(--font-size-xs);
+    line-height: var(--line-height-tight);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  
+  th {
+    font-weight: bold;
+    background-color: var(--color-gray-light);
+    font-size: calc(var(--font-size-sm) * 0.9); /* Slightly smaller for headers */
+  }
+  
+  /* Responsive column widths using percentages for better A4 fit */
+  th:nth-child(1), td:nth-child(1) { width: 30%; } /* Course */
+  th:nth-child(2), td:nth-child(2) { width: 25%; } /* Discipline */
+  
+  /* Table footer styling */
+  tfoot {
+    .summary-row {
+      text-align: right;
+      font-weight: bold;
+      font-size: var(--font-size-sm);
+      padding: var(--spacing-xs) var(--spacing-sm);
+      background-color: var(--color-gray-light);
+    }
+  }
+  
+  /* Zebra striping for better readability */
+  tbody tr:nth-child(even) {
+    background-color: rgba(245, 245, 245, 0.3);
+  }
+}
+
+/* Footer Styles - A4 Optimized */
+footer {
+  flex-shrink: 0;
+  margin-top: auto; /* Push to bottom */
+  
+  .suap-footer {
+    padding: var(--spacing-md) var(--page-margin);
+    
+    .footer-border {
+      border-top: 1px solid var(--color-black);
+      padding: var(--spacing-sm) 0 0;
+      max-width: var(--content-max-width);
+      margin: 0 auto;
+      
+      .footer-content {
+        text-align: center;
+        font-family: var(--font-calibri);
+        
+        .footer-main {
+          font-size: var(--font-size-sm);
+          margin-bottom: var(--spacing-xs);
+          font-weight: 600;
+        }
+        
+        .footer-address {
+          font-size: calc(var(--font-size-sm) * 0.95);
+          margin: var(--spacing-xs) 0;
+          line-height: var(--line-height-tight);
+          
+          .footer-separator {
+            margin: 0 var(--spacing-xs);
+          }
+        }
+        
+        .footer-links {
+          margin-top: var(--spacing-xs);
+          
+          a {
+            color: var(--color-blue);
+            text-decoration: underline;
+            font-size: var(--font-size-sm);
+            
+            &:visited {
+              color: var(--color-blue);
+            }
+            
+            &:hover {
+              text-decoration: none;
+            }
+          }
+          
+          .footer-separator {
+            margin: 0 var(--spacing-sm);
+          }
+        }
+      }
+    }
+  }
+}
+
+/* Utility Classes */
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-justify { text-align: justify; }
+.font-bold { font-weight: bold; }
+.text-underline { text-decoration: underline; }
+.no-border { border: none; }
+
+/* Screen Display - Responsive for development */
+@media screen {
+  body {
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    margin: var(--spacing-md) auto;
+    background: var(--color-white);
+  }
+}
+
+/* A4 Print Optimization */
+@media print {
+  /* Reset for print */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  html {
+    font-size: var(--font-size-base);
+  }
+  
+  body {
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+    background: var(--color-white) !important;
+    width: var(--page-width);
+    min-height: var(--page-height);
+  }
+  
+  /* Page setup for A4 */
+  @page {
+    size: A4;
+    margin: var(--page-margin-small);
+  }
+  
+  /* Optimize spacing for print */
+  header {
+    padding: var(--spacing-md) 0;
+  }
+  
+  main {
+    padding: var(--spacing-md) 0;
+  }
+  
+  footer {
+    .suap-footer {
+      padding: var(--spacing-md) 0;
+    }
+  }
+  
+  /* Prevent page breaks */
+  .semester-section {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  
+  .courses-table {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  
+  .signature-section {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  
+  /* Ensure table borders print */
+  .courses-table th,
+  .courses-table td {
+    border: var(--border-solid) !important;
+  }
+  
+  /* Hide elements that shouldn't print */
+  .no-print {
+    display: none !important;
+  }
+  
+  /* Optimize font sizes for print legibility */
+  h1.title {
+    font-size: calc(var(--font-size-base) * 1.1);
+  }
+  
+  .body-text {
+    line-height: var(--line-height-normal);
+  }
+  
+  .courses-table th,
+  .courses-table td {
+    font-size: calc(var(--font-size-sm) * 1.1);
+    padding: var(--spacing-xs);
+  }
+}

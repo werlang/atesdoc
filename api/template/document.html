@@ -1,33 +1,62 @@
-<html>
-<body style="padding: 20px 75px">
-    <p style="border:none">&nbsp;</p>
-    
-    <p align="center" style="border:none; text-align:center"><span style="font-size:10pt"><span style="font-family:Calibri,sans-serif"><b><u><span style="font-size:12.0pt"><span style="font-family:&quot;Arial&quot;,sans-serif"><span style="color:black">ATESTADO DE DOC&Ecirc;NCIA</span></span></span></u></b></span></span></p>
-    
-    <p style="border:none">&nbsp;</p>
-    
-    <p style="text-align:justify"><span style="font-size:10pt"><span style="font-family:Calibri,sans-serif"><span style="font-size:12.0pt"><span style="font-family:&quot;Arial&quot;,sans-serif">Atestamos, para os devidos fins, que <b>{{professorName}}, {{professorSiape}}</b>, exerce suas atividades como professor de Ensino B&aacute;sico, T&eacute;cnico e Tecnol&oacute;gico no Instituto Federal Sul-Rio-Grandense c&acirc;mpus Charqueadas tendo ministrado nos semestres letivos de {{semesters}} as seguintes disciplinas:</span></span></span></span></p>
-    
-    {{semestersTables}}
-    
-    <p style="border:none; text-align:justify">&nbsp;</p>
-    
-    <p style="text-align:justify"><span style="font-size:10pt"><span style="line-height:115%"><span style="font-family:Calibri,sans-serif"><span style="font-size:12.0pt"><span style="line-height:115%"><span style="font-family:&quot;Arial&quot;,sans-serif">Atestamos que nos per&iacute;odos de {{semesters}} esteve presente em reuni&otilde;es docentes, com carga hor&aacute;ria de 02 horas-aula (ou 1h30min).</span></span></span></span></span></span></p>
-    
-    <p style="text-align:justify">&nbsp;</p>
-    
-    <p style="text-align:justify">&nbsp;</p>
-    
-    <p align="right" style="text-align:right"><span style="font-size:10pt"><span style="line-height:115%"><span style="font-family:Calibri,sans-serif"><span style="font-size:12.0pt"><span style="line-height:115%"><span style="font-family:&quot;Arial&quot;,sans-serif">{{city}}, {{day}} de {{month}} de {{year}}.</span></span></span></span></span></span></p>
-    
-    <p style="border:none; text-align:justify">&nbsp;</p>
-    
-    <p align="center" style="border:none; text-align:center"><span style="font-size:10pt"><span style="line-height:115%"><span style="font-family:Calibri,sans-serif"><span style="font-size:12.0pt"><span style="line-height:115%"><span style="font-family:&quot;Arial&quot;,sans-serif"><span style="color:black">_________________________________________</span></span></span></span></span></span></span></p>
-    
-    <p align="center" style="border:none; text-align:center"><span style="font-size:10pt"><span style="line-height:115%"><span style="font-family:Calibri,sans-serif"><span style="font-size:9.0pt"><span style="line-height:115%"><span style="font-family:&quot;Arial&quot;,sans-serif"><span style="color:black">{{depex}}</span></span></span></span></span></span></span></p>
-    
-    <p align="center" style="border:none; text-align:center"><span style="font-size:10pt"><span style="line-height:115%"><span style="font-family:Calibri,sans-serif"><span style="font-size:9.0pt"><span style="line-height:115%"><span style="font-family:&quot;Arial&quot;,sans-serif"><span style="color:black">Chefe do Departamento de Ensino, Pesquisa e Extens&atilde;o</span></span></span></span></span></span></span></p>
-
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atestado de Docência - {{professorName}}</title>
+    {{css}}
+</head>
+<body>
+    <header>
+        <div class="suap-header" data-left="2" data-right="19">
+            <img src="{{arms}}" alt="Brasão do Instituto Federal">
+            <div class="header-text">
+                <div>MINISTÉRIO DA EDUCAÇÃO</div>
+                <div>INSTITUTO FEDERAL DE EDUCAÇÃO, CIÊNCIA E TECNOLOGIA SUL-RIO-GRANDENSE</div>
+                <div>CÂMPUS CHARQUEADAS</div>
+            </div>
+        </div>
+    </header>
+    <main>
+        <h1 class="title">ATESTADO DE DOCÊNCIA</h1>
+        
+        <p class="body-text">Atestamos, para os devidos fins, que <strong>{{professorName}}, {{professorSiape}}</strong>, exerce suas atividades como professor de Ensino Básico, Técnico e Tecnológico no Instituto Federal Sul-Rio-Grandense câmpus Charqueadas tendo ministrado nos semestres letivos de {{semesters}} as seguintes disciplinas:</p>
+        
+        {{semestersTables}}
+        
+        <p class="body-text">Atestamos que nos períodos de {{semesters}} esteve presente em reuniões docentes, com carga horária de 02 horas-aula (ou 1h30min).</p>
+        
+        <div class="signature-section">
+            <p class="body-text right-aligned">{{city}}, {{day}} de {{month}} de {{year}}.</p>
+        </div>
+        
+        <p class="signature-line">___________________________________________________________</p>
+        
+        <p class="signature-title">{{depex}}</p>
+        
+        <p class="signature-title">Chefe do Departamento de Ensino, Pesquisa e Extensão</p>
+    </main>
+    <footer>
+        <div class="suap-footer" data-left="2" data-right="19">
+            <div class="footer-border">
+                <div class="footer-content">
+                    <div class="footer-main">INSTITUTO FEDERAL DE EDUCAÇÃO, CIÊNCIA E TECNOLOGIA SUL-RIO-GRANDENSE - CÂMPUS CHARQUEADAS</div>
+                    <div class="footer-address">
+                        <span class="footer-address">Rua General Balbão, 81</span>
+                        <span class="footer-separator">ǀ</span>
+                        <span class="footer-address">Bairro Centro</span>
+                        <span class="footer-separator">ǀ CEP 96745-000 ǀ Charqueadas-RS ǀ (51)</span>
+                        <span class="footer-phone">3658-3602</span>
+                    </div>
+                    <div class="footer-links">
+                        <a href="http://www.charqueadas.ifsul.edu.br/">www.charqueadas.ifsul.edu.br</a>
+                        <span class="footer-separator">ǀ</span>
+                        <a href="mailto:ch-gabdir@ifsul.edu.br">ch-gabdir@ifsul.edu.br</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
 </body>
 </html>
 
