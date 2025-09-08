@@ -3,6 +3,7 @@ import LocalData from "./local-data.js";
 export default class StateManager {
 
     constructor({ key, defaults }={}) {
+        this.expires = '2h';
         this.key = key ?? 'app-state';
         this.defaults = defaults ?? {};
         this.localData = new LocalData({
@@ -26,7 +27,7 @@ export default class StateManager {
             this.get();
         }
         this.state = { ...this.state, ...data };
-        this.localData.set({ data: this.state });
+        this.localData.set({ data: this.state, expires: this.expires });
         this.callbackList.forEach(callback => callback(this.state));
     }
 

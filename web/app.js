@@ -21,6 +21,7 @@ app.use(renderMiddleware({
 
 app.get('/', (req, res) => {
     res.templateRender('index', {
+        year: new Date().getFullYear(),
     });
 });
 
