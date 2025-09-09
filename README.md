@@ -1,11 +1,11 @@
-# SUAP Teacher Scraper
+# atesdoc
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Docker](https://img.shields.io/badge/Docker-Supported-blue.svg)](https://www.docker.com/)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/JavaScript-ES6+-yellow.svg)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 
-A comprehensive web application for generating teaching certificates from SUAP (Sistema Unificado de Administração Pública) data for IFSUL (Instituto Federal Sul-rio-grandense). This tool automates the process of scraping professor data and generating professional teaching documentation through a modern, intuitive 3-step wizard interface.
+**Atestado de docência** - A comprehensive web application for generating teaching certificates from SUAP (Sistema Unificado de Administração Pública) data for IFSUL (Instituto Federal Sul-rio-grandense). This tool automates the process of scraping professor data and generating professional teaching documentation through a modern, intuitive 3-step wizard interface.
 
 ## 📋 Table of Contents
 
@@ -394,7 +394,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - IFSUL for providing the SUAP system access
 - The open-source community for the tools and libraries used
-- Contributors and users who help improve this project
+- Contributors and users who help improve atesdoc
 - Material Design team for design inspiration
 
 ## 🔮 Future Enhancements
@@ -408,4 +408,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**⚠️ Disclaimer**: This tool is developed for educational and administrative purposes. Please ensure you have proper authorization to access SUAP data and comply with your institution's policies.
+**⚠️ Disclaimer**: atesdoc is developed for educational and administrative purposes. Please ensure you have proper authorization to access SUAP data and comply with your institution's policies.

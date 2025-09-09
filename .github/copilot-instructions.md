@@ -1,8 +1,8 @@
-# SUAP Teacher Scraper - AI Coding Agent Instructions
+# atesdoc - AI Coding Agent Instructions
 
 ## Project Overview
 
-This is a **comprehensive 2-service dockerized application** that automates the generation of teaching certificates for IFSUL (Instituto Federal Sul-rio-grandense) professors by scraping data from SUAP (Sistema Unificado de Administração Pública). The system provides a modern web interface with a **3-step wizard workflow** for professor search, semester/diary selection, and automated document generation.
+**Atestado de docência** - This is a **comprehensive 2-service dockerized application** that automates the generation of teaching certificates for IFSUL (Instituto Federal Sul-rio-grandense) professors by scraping data from SUAP (Sistema Unificado de Administração Pública). The system provides a modern web interface with a **3-step wizard workflow** for professor search, semester/diary selection, and automated document generation.
 
 ## Architecture Overview
 
