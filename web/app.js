@@ -16,7 +16,7 @@ app.set('views', import.meta.dirname + '/view/');
 
 // render middleware, setting some variables to be used in all views
 app.use(renderMiddleware({
-    apiurl: process.env.API_URL,
+    wsserver: process.env.WEBSOCKET_URL,
 }));
 
 app.get('/', (req, res) => {

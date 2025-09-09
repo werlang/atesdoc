@@ -5,10 +5,11 @@ import professorSearch from "./modules/professor-search.js";
 import semesterSelect from "./modules/semester-select.js";
 import bookSelect from "./modules/book-select.js";
 import report from "./modules/report.js";
+import TemplateVar from "./helpers/template-var.js";
 
 import '../less/index.less';
 
-const wsserver = new WSClient({ url: 'ws://localhost:8080' });
+const wsserver = new WSClient({ url: TemplateVar.get('wsserver') });
 
 let firstConnection = true;
 wsserver.onConnect(() => {
