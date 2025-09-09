@@ -41,38 +41,39 @@ A comprehensive web application for generating teaching certificates from SUAP (
 - **Dark/Light Themes**: Earth-tone color palette with accessibility considerations
 
 ### Technical Features
-- **Microservices Architecture**: Separate web, API, and scraper services
+- **Microservices Architecture**: Separate web and API services with integrated scraping
 - **Queue Management**: Efficient task queuing system for handling multiple requests
 - **Containerized Deployment**: Docker support for easy setup and scaling
-- **Headless Browser**: Puppeteer-based scraping with Chrome integration
+- **Integrated Headless Browser**: Puppeteer-based scraping with Chrome integration built into API
 - **WebSocket Communication**: Real-time updates and streaming responses
 - **State Management**: Centralized state with reactive UI updates
 
 ## 🏗 Architecture
 
-The application follows a microservices architecture with three main components:
+The application follows a microservices architecture with two main components:
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Web Frontend  │    │   API Server    │    │   Scraper       │
-│   (Express.js)  │◄──►│   (Node.js)     │◄──►│   (Puppeteer)   │
-│   Port: 80      │    │   Port: 8080    │    │   Background    │
-│                 │    │   WebSocket     │    │   Service       │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+┌─────────────────┐    ┌─────────────────┐
+│   Web Frontend  │    │   API Server    │
+│   (Express.js)  │◄──►│   (Node.js)     │
+│   Port: 80      │    │   Port: 8080    │
+│                 │    │   WebSocket     │
+│                 │    │   + Integrated  │
+│                 │    │   Puppeteer     │
+└─────────────────┘    └─────────────────┘
                               │
                               ▼
                        ┌─────────────────┐
                        │   Browserless   │
                        │   Chrome        │
-                       │   Port: 9222    │
+                       │   Port: 3000    │
                        └─────────────────┘
 ```
 
 ### Components
 
 - **Web**: Frontend application with Webpack, LESS, and modern JavaScript ES6+ modules
-- **API**: RESTful API with WebSocket support for real-time communication and queue management
-- **Scraper**: Automated data extraction from SUAP using Puppeteer with error recovery
+- **API**: RESTful API with WebSocket support, real-time communication, queue management, and integrated Puppeteer scraping
 - **Chrome**: Browserless Chrome instance for headless browsing and PDF generation
 
 ## 🎨 User Interface
@@ -152,26 +153,16 @@ The application follows a microservices architecture with three main components:
    # Web frontend
    cd web && npm install && cd ..
    
-   # API server
+   # API server (includes integrated scraper)
    cd api && npm install && cd ..
-   
-   # Scraper
-   cd scraper && npm install && cd ..
    ```
 
-2. **Configure scraper**
-   ```bash
-   cd scraper
-   cp config.js.example config.js
-   # Edit config.js with your professor IDs and semesters
-   ```
-
-3. **Start services individually**
+2. **Start services**
    ```bash
    # Terminal 1: Start Chrome (or use Docker)
-   docker run -d -p 9222:3000 browserless/chrome:latest
+   docker run -d -p 3000:3000 browserless/chrome:latest
    
-   # Terminal 2: Start API
+   # Terminal 2: Start API (includes scraper functionality)
    cd api && npm run development
    
    # Terminal 3: Start Web
@@ -179,30 +170,6 @@ The application follows a microservices architecture with three main components:
    ```
 
 ## ⚙️ Configuration
-
-### Scraper Configuration
-
-Create `scraper/config.js` based on the example:
-
-```javascript
-module.exports = {
-    semestres: ['2023.2', '2024.1', '2024.2', '2025.1'],
-    professores: [
-        748,  // Felipe Thomas
-        1335, // Pablo Werlang
-        { 
-            id: 123, 
-            semestres: ['2024.1', '2024.2'] 
-        },
-        { 
-            id: 456, 
-            exclude: [
-                'TEC.1234 - Component to Exclude [100.00 h/150.00 Classes]'
-            ] 
-        }
-    ]
-};
-```
 
 ### Environment Variables
 
@@ -310,14 +277,11 @@ ws.send(JSON.stringify({
 ### Project Structure
 
 ```
-├── api/                    # API server
-│   ├── helpers/           # Utility classes (Queue, WSServer, Router)
+├── api/                    # API server with integrated scraper
+│   ├── helpers/           # Utility classes (Queue, WSServer, Router, Scraper)
 │   ├── model/             # Data models (Professor, Semester, Books)
+│   ├── template/          # HTML templates for document generation
 │   └── app.js             # Main API application
-├── scraper/               # Standalone scraper service
-│   ├── document/          # Generated documents output
-│   ├── template/          # HTML templates for documents
-│   └── app.js             # Main scraper application
 ├── web/                   # Frontend application
 │   ├── src/               # Source code
 │   │   ├── js/            # JavaScript modules and components
@@ -372,11 +336,11 @@ docker-compose up
 # Frontend development with hot reload
 cd web && npm run development
 
-# API development with nodemon
+# API development with nodemon (includes integrated scraper)
 cd api && npm run development
 
 # Build for production
-docker-compose -f compose.prod.yaml up --build
+docker-compose up --build
 
 # View logs
 docker-compose logs -f [service-name]

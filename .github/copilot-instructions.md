@@ -2,15 +2,14 @@
 
 ## Project Overview
 
-This is a **comprehensive 3-service dockerized application** that automates the generation of teaching certificates for IFSUL (Instituto Federal Sul-rio-grandense) professors by scraping data from SUAP (Sistema Unificado de Administração Pública). The system provides a modern web interface with a **3-step wizard workflow** for professor search, semester/diary selection, and automated document generation.
+This is a **comprehensive 2-service dockerized application** that automates the generation of teaching certificates for IFSUL (Instituto Federal Sul-rio-grandense) professors by scraping data from SUAP (Sistema Unificado de Administração Pública). The system provides a modern web interface with a **3-step wizard workflow** for professor search, semester/diary selection, and automated document generation.
 
 ## Architecture Overview
 
 **Microservices Architecture** with containerized deployment:
 
 - **`/web`** - Express.js frontend (port 80/3000) with vanilla JS, LESS, and Mustache templating
-- **`/api`** - Node.js WebSocket server (port 8080) managing scraper requests via queue system  
-- **`/scraper`** - Standalone Puppeteer scraper service connecting to browserless/chrome container
+- **`/api`** - Node.js WebSocket server (port 8080) with integrated Puppeteer scraping functionality and queue management
 - **`/compose.yaml`** - Docker Compose orchestration including external chrome container
 - **Chrome Container** - Browserless Chrome instance (port 9222) for headless browsing
 
@@ -42,12 +41,9 @@ docker-compose up -d        # Start all services
 cd web && npm run development
 # Runs webpack dev server (port 80) + nodemon (port 3000) in parallel
 
-# API development
+# API development (includes integrated scraper)
 cd api && npm run development
 # Runs nodemon with inspector on 0.0.0.0
-
-# Standalone scraper
-cd scraper && node app.js
 ```
 
 ### Environment Configuration
@@ -163,12 +159,13 @@ closeStream = await wsserver.stream('get_books', {
 
 ## Technical Implementation Details
 
-### Puppeteer Scraping System
-- **Chrome Connection**: Browserless container at `http://localhost:9222`
+### Integrated Puppeteer Scraping System
+- **Location**: Integrated into API service at `api/helpers/scraper.js`
+- **Chrome Connection**: Browserless container at `http://chrome:3000` (internal container communication)
 - **Authentication**: Automated SUAP login with credential management
 - **Data Extraction**: Multi-semester academic schedule parsing
-- **Document Generation**: HTML template processing with course data
-- **Error Recovery**: Robust error handling for network and parsing issues
+- **Document Generation**: HTML template processing with course data and PDF generation
+- **Error Recovery**: Robust error handling for network and parsing issues with automatic reconnection
 
 ### Queue Management System
 - **Implementation**: Custom `Queue` class (`api/helpers/queue.js`)
@@ -186,19 +183,22 @@ closeStream = await wsserver.stream('get_books', {
 - **Asset Management**: Font loading, icon integration, image optimization
 
 ### Configuration Management
-- **Scraper Config**: `scraper/config.js` with professor IDs and semester lists
-- **Flexible Professor Handling**: Support for individual semester overrides and exclusions
-- **Environment Variables**: Secure credential management via `.env`
+- **SUAP Config**: `api/suap-config.js` with SUAP system endpoints and selectors
+- **Environment Variables**: Secure credential management via `.env` for SUAP authentication
+- **Chrome Port Configuration**: Configurable Chrome container connection via `CHROME_PORT` environment variable
 
 **Configuration Example:**
 ```javascript
-module.exports = {
-    semestres: ['2023.2', '2024.1', '2024.2', '2025.1'],
-    professores: [
-        748,  // Simple ID
-        { id: 1335, semestres: ['2024.1', '2024.2'] }, // Custom semesters
-        { id: 456, exclude: ['TEC.1234 - Component [100h]'] } // Exclusions
-    ]
+// api/suap-config.js
+export default {
+    baseUrl: 'https://suap.ifsul.edu.br',
+    login: {
+        url: 'accounts/login/',
+        username: '#id_username',
+        password: '#id_password',
+        submit: '[type="submit"]',
+        ready: '.sidebar'
+    }
 };
 ```
 
