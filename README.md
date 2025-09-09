@@ -120,8 +120,8 @@ The application follows a microservices architecture with three main components:
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/werlang/SUAP-Teacher-Scraper.git
-   cd SUAP-Teacher-Scraper
+   git clone https://github.com/werlang/atesdoc.git
+   cd atesdoc
    ```
 
 2. **Create environment file**
@@ -411,7 +411,7 @@ We welcome contributions! Please follow these steps:
 
 ### Issues
 
-Please use the [GitHub Issues](https://github.com/werlang/SUAP-Teacher-Scraper/issues) page to:
+Please use the [GitHub Issues](https://github.com/werlang/atesdoc/issues) page to:
 - Report bugs with detailed reproduction steps
 - Request new features with use case descriptions
 - Ask questions about implementation

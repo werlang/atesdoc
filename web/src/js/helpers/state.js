@@ -19,6 +19,10 @@ export default class StateManager {
         if (!this.state) {
             this.state = this.localData.get();
         }
+        if (!this.state) {
+            this.state = this.defaults;
+            this.localData.set({ data: this.state, expires: this.expires });
+        }
         return this.state;
     }
 
