@@ -8,8 +8,8 @@ services:
         working_dir: /app
         env_file:
             - .env
-        ports:
-            - 127.0.0.1:80:80
+        # ports:
+        #     - 127.0.0.1:80:80
         command: npm run ${NODE_ENV}
         networks:
             - atesdoc
@@ -22,14 +22,17 @@ services:
         working_dir: /app
         env_file:
             - .env
-        ports:
-            - 127.0.0.1:8080:8080
+        # ports:
+        #     - 127.0.0.1:8080:8080
         command: npm run $NODE_ENV
         # command: tail -f /dev/null
         networks:
             - atesdoc
     chrome:
         image: 'browserless/chrome:latest'
+        restart: unless-stopped
+        networks:
+            - atesdoc
 volumes:
     node_modules_web:
     node_modules_api:

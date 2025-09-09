@@ -293,6 +293,8 @@ export default function(wsserver, state) {
         const actionsContainer = document.querySelector('.report-actions');
         if (actionsContainer) {
             actionsContainer.classList.add('show');
+            // scrolls to buttons
+            actionsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     }
 
