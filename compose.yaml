@@ -33,6 +33,16 @@ services:
         restart: unless-stopped
         networks:
             - atesdoc
+    tunnel:
+        image: cloudflare/cloudflared
+        restart: unless-stopped
+        command: tunnel --no-autoupdate run
+        environment:
+            - TUNNEL_TOKEN=${CLOUDFLARE_TOKEN}
+        env_file:
+            - .env
+        networks:
+            - atesdoc
 volumes:
     node_modules_web:
     node_modules_api:
