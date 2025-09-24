@@ -9,7 +9,7 @@ import TemplateVar from "./helpers/template-var.js";
 
 import '../less/index.less';
 
-const wsserver = new WSClient({ url: TemplateVar.get('wsserver') });
+const wsserver = new WSClient({ url: 'https://'+ TemplateVar.get('wsserver') });
 
 let firstConnection = true;
 wsserver.onConnect(() => {
