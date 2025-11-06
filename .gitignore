@@ -14,3 +14,4 @@ web/public/css
 
 .DS_Store
 .env
+nginx

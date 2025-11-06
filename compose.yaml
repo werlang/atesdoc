@@ -33,6 +33,26 @@ services:
         restart: unless-stopped
         networks:
             - atesdoc
+    nginx:
+        image: pswerlang/nginx-auto-ssl
+        restart: unless-stopped
+        ports:
+            - "80:80"
+            - "443:443"
+        volumes:
+            - ./nginx:/etc/nginx/conf.d
+        environment:
+            - SITES=${WEBSITE_URL}=web:3000;${WEBSOCKET_URL}=api:8080
+            - ALLOWED_DOMAINS=${PRODUCTION_DOMAIN}
+            - FORCE_HTTPS=true
+        networks:
+            - atesdoc
+        depends_on:
+            - web
+            - api
+        logging:
+            options:
+                max-size: "10m"
 volumes:
     node_modules_web:
     node_modules_api:
