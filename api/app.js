@@ -2,6 +2,7 @@ import Route from "./helpers/router.js";
 import Professor from "./model/professor.js";
 import Book from "./model/books.js";
 import Report from "./model/report.js";
+import Telegram from "./helpers/telegram.js";
 
 new Route('get_professors', async (payload, reply) => {
     const professors = await Professor.search(payload.query, reply);
@@ -35,7 +36,8 @@ new Route('post_report', async (payload, reply) => {
         console.log('Generating PDF report...', report.toJSON(true));
 
         const { pdf, filename } = await report.toPDF();
-        
+        await Telegram.alert(`New report generated for Professor ${report.data.professor.name}`);
+
         return { 
             success: true, 
             pdfData: pdf,
