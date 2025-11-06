@@ -36,7 +36,7 @@ new Route('post_report', async (payload, reply) => {
         console.log('Generating PDF report...', report.toJSON(true));
 
         const { pdf, filename } = await report.toPDF();
-        await Telegram.alert(`New report generated for Professor ${report.data.professor.name}`);
+        await Telegram.alert(`[${new Date().toISOString()}] New report generated for Professor ${report.professor.name}`);
 
         return { 
             success: true, 
