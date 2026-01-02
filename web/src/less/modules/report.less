@@ -894,6 +894,11 @@ main {
                                 &.lesson-date {
                                     font-weight: 500;
                                     color: var(--color-text);
+
+                                    &.outside-period {
+                                        color: var(--color-error);
+                                        font-style: italic;
+                                    }
                                 }
 
                                 &.lesson-time {
@@ -909,6 +914,11 @@ main {
                                 &.lesson-professor {
                                     color: rgb(from var(--color-text) r g b / 0.8);
                                     font-size: 0.85rem;
+
+                                    &.not-eligible {
+                                        font-style: italic;
+                                        color: var(--color-error);
+                                    }
                                 }
 
                                 &.lesson-periods {

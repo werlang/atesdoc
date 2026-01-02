@@ -2,16 +2,19 @@ import Modal from "../components/modal.js";
 
 export default function showBookDetails(book, state) {
     // Generate semester details HTML
-    const semesterDetailsHtml = Object.entries(book.report.semesters).map(([semesterKey, semesterData]) => `
-        <div class="semester-detail-card">
+    const semesterDetailsHtml = Object.entries(book.report.semesters).map(([semesterKey, semesterData]) => {
+        const lessons = semesterData.lessons.filter(lesson => isLessonInSelectedPeriod(lesson.date, state.get().semesters));
+        semesterData.blocks = lessons.reduce((sum, lesson) => sum + (lesson.blocks || 1), 0);
+        semesterData.hours = semesterData.blocks * 0.75; // Each period is 45 minutes = 0.75 hours
+        return `<div class="semester-detail-card">
             <div class="semester-detail-header">
                 <h4><i class="fa-solid fa-calendar"></i> ${semesterKey}</h4>
             </div>
             <div class="semester-stats-grid">
                 <div class="stat-item">
                     <i class="fa-solid fa-chalkboard-user"></i>
-                    <span class="stat-label">Períodos</span>
-                    <span class="stat-value">${semesterData.blocks}</span>
+                    <span class="stat-label">Aulas</span>
+                    <span class="stat-value">${lessons.length}</span>
                 </div>
                 <div class="stat-item">
                     <i class="fa-solid fa-clock"></i>
@@ -25,13 +28,14 @@ export default function showBookDetails(book, state) {
                     <span>Detalhes</span>
                 </button>
             </div>
-        </div>
-    `).join('');
+        </div>`
+    }).join('');
 
     // Calculate totals from semester data
-    const totalBlocks = Object.values(book.report.semesters).reduce((sum, semester) => sum + (semester.blocks || 0), 0);
-    const totalHours = Object.values(book.report.semesters).reduce((sum, semester) => sum + (semester.hours || 0), 0);
-
+    const eligibleLessons = book.report.eligibleLessons.filter(lesson => state.get().semesters.includes(lesson.semester));
+    const totalBlocks = eligibleLessons.reduce((sum, lesson) => sum + (lesson.blocks || 1), 0);
+    const totalHours = totalBlocks * 0.75; // Each period is 45 minutes = 0.75 hours
+    
     const modal = new Modal(`
         <h2>${book.book} - ${book.class}</h2>
         <div class="book-report-summary">
@@ -51,7 +55,7 @@ export default function showBookDetails(book, state) {
                     </div>
                     <div class="summary-stat-content">
                         <span class="summary-stat-label">Aulas Elegíveis</span>
-                        <span class="summary-stat-value">${book.report.eligibleLessons.length}</span>
+                        <span class="summary-stat-value">${eligibleLessons.length}</span>
                     </div>
                 </div>
                 <div class="summary-stat">
@@ -85,7 +89,7 @@ export default function showBookDetails(book, state) {
             </div>
             
             <div class="period-explanation">
-                <p><i class="fa-solid fa-info-circle"></i> As aulas elegíveis são aquelas que foram registradas em nome do professor <strong>${state.get().professor.name}</strong>.</p>
+                <p><i class="fa-solid fa-info-circle"></i> As aulas elegíveis são aquelas que foram registradas em nome do professor <strong>${state.get().professor.name}</strong> nos semestres <strong>${state.get().semesters.join(', ')}</strong>.</p>
                 <p><i class="fa-solid fa-info-circle"></i> O período considerado para cada semestre segue o calendário civil: o <strong>primeiro semestre</strong> abrange aulas registradas de <strong>janeiro a junho</strong>, enquanto o <strong>segundo semestre</strong> corresponde às aulas de <strong>julho a dezembro</strong>.</p>
                 <p><i class="fa-solid fa-info-circle"></i> Cada período corresponde a 45 minutos de aula.</p>
             </div>
@@ -98,31 +102,72 @@ export default function showBookDetails(book, state) {
         button.addEventListener('click', () => {
             const semesterKeys = Object.keys(book.report.semesters);
             const selectedSemester = semesterKeys[index];
-            showLessonDetails(book, selectedSemester);
+            showLessonDetails(book, selectedSemester, state);
         });
     });
 }
 
-function showLessonDetails(book, semester) {
+// Determine if lesson is within selected semester period (civil calendar)
+function isLessonInSelectedPeriod(lessonDate, semesters) {
+    const date = new Date(lessonDate);
+    const month = date.getMonth() + 1; // getMonth() returns 0-11
+    
+    let found = false;
+    for (const semester of semesters) {
+        // Extract semester year and number from semester string (e.g., "2024.1" or "2024.2")
+        const [year, semesterNum] = semester.split('.').map(Number);
+        const lessonYear = date.getFullYear();
+        
+        // Check if lesson year matches semester year
+        if (lessonYear !== year) return false;
+        
+        // First semester: January to June (months 1-6)
+        // Second semester: July to December (months 7-12)
+        if (semesterNum === 1) {
+            found = month >= 1 && month <= 6;
+        } else if (semesterNum === 2) {
+            found = month >= 7 && month <= 12;
+        }
+    }
+    
+    return found;
+};
+
+function showLessonDetails(book, semester, state) {
+    const chosenSemesters = state.get().semesters;
     // Filter lessons for the specific semester. Sort lessons by date
     const semesterLessons = book.report.lessons.filter(lesson => lesson.semester === semester);
     semesterLessons.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    const semesterEligibleLessons = book.report.eligibleLessons.filter(lesson => lesson.semester === semester);
+    const semesterEligibleLessons = book.report.eligibleLessons.filter(lesson => lesson.semester === semester && chosenSemesters.includes(semester));
 
     // Create lesson table HTML
     const lessonsTableHtml = semesterLessons.map(lesson => {
         const formattedDate = new Date(lesson.date).toLocaleDateString('pt-BR');
+        const isInPeriod = isLessonInSelectedPeriod(lesson.date, chosenSemesters);
+        
+        // Determine badge type: eligible (green check), not-eligible (red x), or outside-period (yellow calendar)
+        let badgeClass, badgeIcon, rowClass;
+        if (lesson.isEligible && isInPeriod) {
+            badgeClass = 'eligible';
+            badgeIcon = 'fa-check';
+            rowClass = 'eligible';
+        } else {
+            badgeClass = 'not-eligible';
+            badgeIcon = 'fa-times';
+            rowClass = 'not-eligible';
+        }
+        
         return `
-            <tr class="lesson-row ${lesson.isEligible ? 'eligible' : 'not-eligible'}">
+            <tr class="lesson-row ${rowClass}">
                 <td class="lesson-eligibility">
-                    <div class="eligibility-badge ${lesson.isEligible ? 'eligible' : 'not-eligible'}">
-                        <i class="fa-solid ${lesson.isEligible ? 'fa-check' : 'fa-times'}"></i>
+                    <div class="eligibility-badge ${badgeClass}">
+                        <i class="fa-solid ${badgeIcon}"></i>
                     </div>
                 </td>
-                <td class="lesson-date">${formattedDate}</td>
+                <td class="lesson-date ${!isInPeriod ? 'outside-period' : ''}">${formattedDate}</td>
                 <td class="lesson-topic">${lesson.topic || 'Sem tópico registrado'}</td>
-                <td class="lesson-professor">${lesson.professor || currentReportData.professor.name}</td>
+                <td class="lesson-professor ${!lesson.isEligible ? 'not-eligible' : ''}">${lesson.professor || currentReportData.professor.name}</td>
                 <td class="lesson-periods">
                     <span class="periods-badge">${lesson.blocks || 1}</span>
                 </td>
@@ -130,12 +175,12 @@ function showLessonDetails(book, semester) {
         `;
     }).join('');
 
+    // lessons from selected professor and within period
     const eligibleCount = semesterEligibleLessons.length;
-    const totalPeriods = semesterLessons.reduce((sum, lesson) => sum + (lesson.blocks || 1), 0);
     const eligiblePeriods = semesterEligibleLessons.reduce((sum, lesson) => sum + (lesson.blocks || 1), 0);
+    const totalHours = eligiblePeriods * 0.75; // Each period is 45 minutes = 0.75 hours
 
     // Show in modal
-
     new Modal(`
         <h2>
             <i class="fa-solid fa-calendar-alt"></i>
@@ -152,12 +197,12 @@ function showLessonDetails(book, semester) {
                     <span class="stat-value">${eligibleCount}</span>
                 </div>
                 <div class="lesson-stat">
-                    <span class="stat-label">Total de Períodos</span>
-                    <span class="stat-value">${totalPeriods}</span>
-                </div>
-                <div class="lesson-stat eligible">
                     <span class="stat-label">Períodos Elegíveis</span>
                     <span class="stat-value">${eligiblePeriods}</span>
+                </div>
+                <div class="lesson-stat eligible">
+                    <span class="stat-label">Total de Horas</span>
+                    <span class="stat-value">${totalHours}</span>
                 </div>
             </div>
             
