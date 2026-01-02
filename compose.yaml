@@ -31,7 +31,7 @@ services:
             - MAX_CONCURRENT_SESSIONS=1
             - CONNECTION_TIMEOUT=60000
             - CHROME_REFRESH_TIME=3600000
-            - DEFAULT_LAUNCH_ARGS=["--disable-dev-shm-usage","--no-s
+            - DEFAULT_LAUNCH_ARGS=["--disable-dev-shm-usage","--no-sandbox","--disable-setuid-sandbox","--disable-gpu"]
         networks:
             - atesdoc
     nginx:
@@ -43,7 +43,7 @@ services:
         volumes:
             - ./nginx:/etc/nginx/conf.d
         environment:
-            - SITES=${WEBSITE_URL}=web:3000;${WEBSOCKET_URL}=api:8080
+            - SITES=${WEBSITE_URL}=web:3000;${API_URL}=api:8080
             - ALLOWED_DOMAINS=${PRODUCTION_DOMAIN}
             - FORCE_HTTPS=true
         networks:
