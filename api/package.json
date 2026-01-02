@@ -13,8 +13,10 @@
   "author": "Pablo Werlang",
   "license": "MIT",
   "dependencies": {
-    "nodemon": "^3.1.10",
     "puppeteer-core": "^24.17.0",
     "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
   }
 }
