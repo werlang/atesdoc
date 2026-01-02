@@ -21,17 +21,14 @@ export default class SUAPScraper {
         // Remote debug: edge://inspect/#devices
         try {
             SUAPScraper.browser = await puppeteer.connect({
-                browserURL: `http://chrome:${SUAPScraper.chromePort}`,
+                browserWSEndpoint: `ws://chrome:${SUAPScraper.chromePort}`,
                 // slowMo: 250
             });
         } catch (error) {
+            // console.log(error);
             console.error('Could not connect to Chrome.');
-            return await new Promise(resolve => {
-                setTimeout(async () => {
-                    await SUAPScraper.connect();
-                    resolve();
-                }, 3000);
-            });
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            return await SUAPScraper.connect();
         }
 
         const page = await SUAPScraper.browser.newPage();
