@@ -2,19 +2,22 @@ import Modal from "../components/modal.js";
 
 export default function showBookDetails(book, state) {
     // Generate semester details HTML
-    const semesterDetailsHtml = Object.entries(book.report.semesters).map(([semesterKey, semesterData]) => {
-        const lessons = semesterData.lessons.filter(lesson => isLessonInSelectedPeriod(lesson.date, state.get().semesters));
-        semesterData.blocks = lessons.reduce((sum, lesson) => sum + (lesson.blocks || 1), 0);
+    const semestersInLessons = [...new Set(book.report.lessons.map(lesson => lesson.semester))].sort();
+    const semesterDetailsHtml = semestersInLessons.map((semester) => {
+        const lessons = book.report.lessons.filter(lesson => lesson.semester === semester);
+        const semesterData = { blocks: 0, hours: 0 };
+        const eligibleLessons = lessons.filter(lesson => isLessonInSelectedPeriod(lesson.date, state.get().semesters) && lesson.isEligible);
+        semesterData.blocks = eligibleLessons.reduce((sum, lesson) => sum + (lesson.blocks || 1), 0);
         semesterData.hours = semesterData.blocks * 0.75; // Each period is 45 minutes = 0.75 hours
         return `<div class="semester-detail-card">
             <div class="semester-detail-header">
-                <h4><i class="fa-solid fa-calendar"></i> ${semesterKey}</h4>
+                <h4><i class="fa-solid fa-calendar"></i> ${semester}</h4>
             </div>
             <div class="semester-stats-grid">
                 <div class="stat-item">
                     <i class="fa-solid fa-chalkboard-user"></i>
                     <span class="stat-label">Aulas</span>
-                    <span class="stat-value">${lessons.length}</span>
+                    <span class="stat-value">${eligibleLessons.length}</span>
                 </div>
                 <div class="stat-item">
                     <i class="fa-solid fa-clock"></i>
@@ -32,7 +35,7 @@ export default function showBookDetails(book, state) {
     }).join('');
 
     // Calculate totals from semester data
-    const eligibleLessons = book.report.eligibleLessons.filter(lesson => state.get().semesters.includes(lesson.semester));
+    const eligibleLessons = book.report.eligibleLessons.filter(lesson => isLessonInSelectedPeriod(lesson.date, state.get().semesters));
     const totalBlocks = eligibleLessons.reduce((sum, lesson) => sum + (lesson.blocks || 1), 0);
     const totalHours = totalBlocks * 0.75; // Each period is 45 minutes = 0.75 hours
     
@@ -80,12 +83,7 @@ export default function showBookDetails(book, state) {
             
             <div class="semester-details">
                 <h3><i class="fa-solid fa-chart-bar"></i> Detalhes por Semestre</h3>
-                <div class="semester-details-grid">
-                    ${!Object.keys(book.report.semesters).length ?
-                        `<p>Nenhuma aula elegível foi encontrada para este diário no período selecionado.</p>`
-                        : semesterDetailsHtml
-                    }
-                </div>
+                <div class="semester-details-grid">${semesterDetailsHtml}</div>
             </div>
             
             <div class="period-explanation">
@@ -100,8 +98,7 @@ export default function showBookDetails(book, state) {
     const detailsButtons = modal.getAll('.details-btn');
     detailsButtons.forEach((button, index) => {
         button.addEventListener('click', () => {
-            const semesterKeys = Object.keys(book.report.semesters);
-            const selectedSemester = semesterKeys[index];
+            const selectedSemester = semestersInLessons[index];
             showLessonDetails(book, selectedSemester, state);
         });
     });
@@ -112,25 +109,21 @@ function isLessonInSelectedPeriod(lessonDate, semesters) {
     const date = new Date(lessonDate);
     const month = date.getMonth() + 1; // getMonth() returns 0-11
     
-    let found = false;
     for (const semester of semesters) {
         // Extract semester year and number from semester string (e.g., "2024.1" or "2024.2")
         const [year, semesterNum] = semester.split('.').map(Number);
         const lessonYear = date.getFullYear();
         
         // Check if lesson year matches semester year
-        if (lessonYear !== year) return false;
+        if (lessonYear !== year) continue;
         
         // First semester: January to June (months 1-6)
         // Second semester: July to December (months 7-12)
-        if (semesterNum === 1) {
-            found = month >= 1 && month <= 6;
-        } else if (semesterNum === 2) {
-            found = month >= 7 && month <= 12;
-        }
+        if (semesterNum === 1 && month >= 1 && month <= 6) return true;
+        if (semesterNum === 2 && month >= 7 && month <= 12) return true;
     }
     
-    return found;
+    return false;
 };
 
 function showLessonDetails(book, semester, state) {
@@ -139,7 +132,7 @@ function showLessonDetails(book, semester, state) {
     const semesterLessons = book.report.lessons.filter(lesson => lesson.semester === semester);
     semesterLessons.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    const semesterEligibleLessons = book.report.eligibleLessons.filter(lesson => lesson.semester === semester && chosenSemesters.includes(semester));
+    const semesterEligibleLessons = book.report.eligibleLessons.filter(lesson => isLessonInSelectedPeriod(lesson.date, chosenSemesters) && lesson.semester === semester);
 
     // Create lesson table HTML
     const lessonsTableHtml = semesterLessons.map(lesson => {
@@ -147,21 +140,23 @@ function showLessonDetails(book, semester, state) {
         const isInPeriod = isLessonInSelectedPeriod(lesson.date, chosenSemesters);
         
         // Determine badge type: eligible (green check), not-eligible (red x), or outside-period (yellow calendar)
-        let badgeClass, badgeIcon, rowClass;
+        let badgeClass, badgeIcon, rowClass, statusTitle;
         if (lesson.isEligible && isInPeriod) {
             badgeClass = 'eligible';
             badgeIcon = 'fa-check';
             rowClass = 'eligible';
+            statusTitle = 'Aula elegível';
         } else {
             badgeClass = 'not-eligible';
             badgeIcon = 'fa-times';
             rowClass = 'not-eligible';
+            statusTitle = 'Aula não elegível';
         }
         
         return `
             <tr class="lesson-row ${rowClass}">
                 <td class="lesson-eligibility">
-                    <div class="eligibility-badge ${badgeClass}">
+                    <div class="eligibility-badge ${badgeClass}" title="${statusTitle}">
                         <i class="fa-solid ${badgeIcon}"></i>
                     </div>
                 </td>
