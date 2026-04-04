@@ -38,7 +38,7 @@ export default {
             query: 'tab=disciplinas&ano-periodo='
         },
         ready: '#form_periodo_letivo',
-        rows: '.box table tr',
+        rows: '#diarios table tr',
         data: {
             semester: (tr) => tr.querySelectorAll('td')?.[0]?.textContent.trim(),
             link: (tr) => tr.querySelectorAll('td')?.[1]?.querySelector('a')?.href,
