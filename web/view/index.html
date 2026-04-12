@@ -9,17 +9,7 @@
     <link rel="stylesheet" href="/css/index.min.css">
 </head>
 <body>
-    <!-- Header -->
-    <header>
-        <div class="header-title">
-            <i class="fa-solid fa-graduation-cap"></i>
-            <h1>Gerador de Atestado de Docência</h1>
-        </div>
-        <div class="header-subtitle">
-            Instituto Federal Sul-Rio-Grandense - Campus Charqueadas
-        </div>
-    </header>
-
+    {{> header}}
     <main>
         <!-- Progress Indicator -->
         <section class="progress-indicator">
@@ -95,18 +85,7 @@
 
     </main>
 
-    <!-- Footer -->
-    <footer>
-        <div class="footer-content">
-            <p>Pablo Werlang • {{year}}</p>
-            <p>
-                <a href="https://github.com/werlang/atesdoc" target="_blank" rel="noopener noreferrer">
-                    <i class="fa-brands fa-github"></i>
-                    Veja no GitHub
-                </a>
-            </p>
-        </div>
-    </footer>
+    {{> footer}}
 
     {{{template-vars}}}
 </body>
