@@ -17,11 +17,19 @@ app.set('views', import.meta.dirname + '/view/');
 // render middleware, setting some variables to be used in all views
 app.use(renderMiddleware({
     wsserver: process.env.WEBSOCKET_URL,
+    year: new Date().getFullYear(),
+
+    webUrl: process.env.WEBSITE_URL,
+    metaTitle: 'Gerador de Atestado de Docência - IFSUL',
+    metaDescription: 'Gerador de Atestado de Docência para o Instituto Federal Sul-Rio-Grandense - Campus Charqueadas é uma ferramenta online que permite aos servidores do Campus criar atestados de docência necessários para realização de suas progressões funcionais junto à CPPD.',
+    metaKeywords: 'atesdoc, atestado, docência, IFSUL, Charqueadas',
+    siteName: 'Gerador de Atestado de Docência'
 }));
 
 app.get('/', (req, res) => {
     res.templateRender('index', {
-        year: new Date().getFullYear(),
+        metaRobots: 'index, follow',
+        canonicalPath: '/',
     });
 });
 
