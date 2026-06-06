@@ -25,12 +25,14 @@ Use this skill when adding or refactoring API communication routes, handling tas
    - Catching runtime exceptions and responding with standard JSON error shapes (`{ error: 'message' }`).
 4. **Data Isolation inside Models**: Route callbacks should keep business logic focused. Instantiation and heavy lifting (like scraping or parsing) must be deferred to model classes (e.g. `Professor`, `Book`, `Report`).
 5. **Document Building**: To generate teaching certificates, feed extracted model records to `DocumentBuilder` to map placeholders like `{{professorName}}` against templates in [api/template/](file:///Users/pablowerlang/Documents/Workspaces/ifsul/atesdoc/api/template/). Convert compilation results to base64 PDFs using `SUAPScraper.generatePDF(html)`.
+6. **TDD & Native Testing**: When implementing, modifying, or refactoring WebSocket routes, the queue logic, or the document builder, you **MUST** write the test cases first under `api/test/` using the native Node.js test runner.
 
 ## Guardrails
 
 - Never write route logic that returns naked text; always return structured JSON objects containing requested keys or status codes.
 - Do not let route tasks block indefinitely; if downstream scraper fails, handle errors gracefully inside the router try/catch block.
 - Keep `DocumentBuilder` variables structured; nested objects in templates are formatted as `{{prefix.property}}`.
+- **Testing Guardrail**: A task is only complete when all tests pass. Never declare a feature done without running tests first. Run the API test suite with: `docker compose exec api npm test`.
 
 ## Review Checklist
 
@@ -38,3 +40,6 @@ Use this skill when adding or refactoring API communication routes, handling tas
 - Are inputs validated before being passed to models?
 - Does the return statement return a structured object?
 - Are HTML document variables correctly registered and mapped in `api/helpers/document-builder.js`?
+- **Testing**: Have unit/integration tests been created/updated for the modified or new logic?
+- **Execution**: Did you run `docker compose exec api npm test` and verify all tests passed successfully?
+

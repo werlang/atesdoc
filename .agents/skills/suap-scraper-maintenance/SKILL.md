@@ -20,12 +20,14 @@ Use this skill when investigating or modifying the automated web scraping workfl
 3. **Session Reconnection**: Navigations should check the current page URL and handle automatic login if redirected to `accounts/login/` or if elements indicating a logged-in state are missing.
 4. **Clean Resource Management**: Always ensure the page and browser instances are closed or disconnected in case of failure to prevent browserless Chrome from running out of memory. Invoke `PlaywrightScraper.disconnect()` on critical errors.
 5. **Serialize Functions for Page Context**: Since `PlaywrightScraper.evaluate()` runs in the browser environment, any data object containing function callbacks must be processed using the scraper's function serialization/deserialization helper.
+6. **TDD & Regression Testing**: When fixing scraper hangs, parsing errors, or updating scraper logic, you **MUST** write regression or unit test cases first under `api/test/` to reproduce/assert the target behavior before modifying production files.
 
 ## Guardrails
 
 - Do not attempt to run Playwright in headful mode within Docker containers.
 - Do not store credentials in code; always pull them from environment variables (`process.env.SUAP_USERNAME`, `process.env.SUAP_PASSWORD`).
 - Do not run scraper operations concurrently without passing them through the WebSocket task queue.
+- **Testing Guardrail**: A task is only complete when all tests pass. Never declare a scraper bug fix or change complete without writing tests and running them with: `docker compose exec api npm test`.
 
 ## Review Checklist
 
@@ -34,3 +36,6 @@ Use this skill when investigating or modifying the automated web scraping workfl
 - Is there clean error wrapping with `CustomError`?
 - Are resources disconnected during errors or shutdown?
 - Does local testing pass without leaking tabs in Chrome?
+- **Testing**: Have unit/regression tests been created/updated for the modified or new logic?
+- **Execution**: Did you run `docker compose exec api npm test` and verify all tests passed successfully?
+

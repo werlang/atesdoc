@@ -90,9 +90,26 @@ To package and launch the services:
 
 ---
 
+## Testing & TDD Guidelines
+
+We employ a strict Test-Driven Development (TDD) and Test-First Delivery quality contract.
+
+1. **Native Testing Runner**: We use the native Node.js test runner (`node:test` and `node:assert`) built into Node 24. No external testing dependencies (like Jest or Mocha) are permitted.
+2. **TDD Mandate**: Whenever you implement a new feature, refactor existing code, or fix a bug, you **MUST** write the test cases first to define the contract, then implement the code to satisfy the test expectations.
+3. **Task Completion Contract**: A development task is **NEVER** considered complete until:
+   - All tests have been written and run successfully.
+   - All tests pass with zero failures.
+4. **Running Tests**:
+   - Running API tests: `docker compose exec api npm test`
+   - Running Web tests: `docker compose exec web npm test`
+5. **Regression Testing**: If a bug is identified (e.g. a scraper hanging or a timeout), write a test case reproducing the failure first, verify the test fails, and then fix the code until the test passes.
+
+---
+
 ## Common Gotchas & Troubleshooting
 - **Scraper Hanger**: If Playwright hangs, ensure there's a timeout fallback on `waitForSelector` or `goto` commands. Check browser connection status, make sure the `chrome` container is responsive.
 - **Port Conflicts**: Ensure development Web server (port 3000) does not conflict with API port (8080) or Chrome connection port (3000). The default production web server is port 80.
 - **WebSocket Reconnection**: If connection to the WebSocket server is dropped, the client-side `WSClient` handles automatic re-connection. Toast notifications will notify the user.
 - **Environment File Access**: Do NOT open, view, read, or modify the `.env` file under any circumstances to preserve security and credential privacy.
+
 

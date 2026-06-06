@@ -23,12 +23,14 @@ Use this skill when developing frontend features, editing LESS files, updating s
 3. **Reactive State Pattern**: Keep the UI decoupled. All modifications to inputs, selects, or search results should update the state through `state.update({ key: value })`. Step transition visibility is driven automatically by state update triggers.
 4. **Use Reusable Components**: For form interactions, dialogs, dropdowns, and toast notifications, import their respective classes from `web/src/js/components/` instead of writing custom DOM events or inline nodes.
 5. **No Cross-Module Imports**: Wizard modules in `web/src/js/modules/` should not import or invoke each other directly. Connect them purely through `state` mutations and listeners.
+6. **TDD & Native Testing**: When implementing, modifying, or refactoring frontend helpers, state managers, or middleware, you **MUST** write the test cases first under `web/test/` using the native Node.js test runner.
 
 ## Guardrails
 
 - All interactive targets (buttons, inputs, toggles) must meet touch criteria of minimum `44px` width/height targets.
 - Ensure LESS nesting does not exceed 4 levels deep to avoid specificity bloating.
 - Avoid introducing inline styling attributes in JavaScript. Toggle classes or utilize class changes instead.
+- **Testing Guardrail**: A task is only complete when all tests pass. Never declare a feature done without running tests first. Run the Web test suite with: `docker compose exec web npm test`.
 
 ## Review Checklist
 
@@ -36,3 +38,6 @@ Use this skill when developing frontend features, editing LESS files, updating s
 - Are responsive breakpoints nested/co-located with their base styles?
 - Does module coordination occur through the `StateManager`?
 - Do interactive buttons or touch interfaces follow accessibility sizing constraints?
+- **Testing**: Have unit/integration tests been created/updated for the modified or new logic?
+- **Execution**: Did you run `docker compose exec web npm test` and verify all tests passed successfully?
+
