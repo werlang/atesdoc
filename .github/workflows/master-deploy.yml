@@ -21,7 +21,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: root
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          envs: REPO_PATH, WEB_CONTAINER_NAME
+          envs: REPO_PATH
           script: |
             set -e
             cd ${{ vars.REPO_PATH }}
@@ -35,7 +35,7 @@ jobs:
             docker compose up -d --build --force-recreate
             echo "[Deploy] Services restarted successfully."
             echo "[Deploy] Recompiling assets..."
-            docker exec ${{ vars.WEB_CONTAINER_NAME }} npx webpack
+            docker compose exec -T web npx webpack
       - name: Notify success
         if: success()
         run: echo "[Deploy] Deployment successful! Services restarted and assets recompiled."
