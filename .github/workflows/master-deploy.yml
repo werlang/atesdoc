@@ -40,6 +40,10 @@ jobs:
             echo "[Deploy] Services restarted successfully."
             echo "[Deploy] Recompiling assets..."
             docker compose exec -T web npx webpack
+            echo "[Deploy] Assets recompiled successfully."
+            echo "[Deploy] Restarting nginx..."
+            docker restart ${{ vars.NGINX_CONTAINER_NAME }}
+            echo "[Deploy] Nginx restarted successfully."
       - name: Notify success
         if: success()
         run: echo "[Deploy] Deployment successful! Services restarted and assets recompiled."
