@@ -336,7 +336,7 @@ docker-compose up
 # Frontend development with hot reload
 cd web && npm run development
 
-# API development with nodemon (includes integrated scraper)
+# API development with watch mode (includes integrated scraper)
 cd api && npm run development
 
 # Build for production

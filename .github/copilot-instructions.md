@@ -39,11 +39,11 @@ docker-compose up -d        # Start all services
 ```bash
 # Frontend development with hot reload
 cd web && npm run development
-# Runs webpack dev server (port 80) + nodemon (port 3000) in parallel
+# Runs webpack dev server (port 80) + Express server (port 3000) in parallel using Node's watch mode
 
 # API development (includes integrated scraper)
 cd api && npm run development
-# Runs nodemon with inspector on 0.0.0.0
+# Runs node in watch mode with inspector on 0.0.0.0
 ```
 
 ### Environment Configuration
