@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "production": "node app.js",
-    "development": "node --inspect=0.0.0.0 app.js --watch"
+    "development": "node --inspect=0.0.0.0 app.js --watch",
+    "test": "node --test"
   },
   "author": "Pablo Werlang",
   "license": "MIT",
