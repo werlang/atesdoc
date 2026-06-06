@@ -22,6 +22,32 @@ export default class SUAPScraper {
     }
 
     /**
+     * Cleans up existing browser and page instances to avoid memory leaks.
+     * 
+     * @returns {Promise<void>}
+     */
+    static async disconnect() {
+        try {
+            if (SUAPScraper.page) {
+                await SUAPScraper.page.close().catch(() => {});
+            }
+        } catch (e) {
+            console.error('Error closing page during disconnect:', e);
+        }
+        try {
+            if (SUAPScraper.browser) {
+                await SUAPScraper.browser.disconnect().catch(() => {});
+            }
+        } catch (e) {
+            console.error('Error disconnecting browser:', e);
+        }
+        SUAPScraper.page = null;
+        SUAPScraper.browser = null;
+        SUAPScraper.connected = false;
+        SUAPScraper.logged = false;
+    }
+
+    /**
      * Connects to the browserless Chrome instance.
      * Implements a maximum retry limit to prevent hanging if the Chrome container is down.
      * 
@@ -30,11 +56,23 @@ export default class SUAPScraper {
      * @throws {CustomError} Thrown if connection fails after all retries are exhausted.
      */
     static async connect(retries = 5) {
+        // Disconnect from any stale sessions/tabs to prevent leaking resources in Chrome
+        await SUAPScraper.disconnect();
+
         // Remote debug: edge://inspect/#devices
         try {
             SUAPScraper.browser = await puppeteer.connect({
                 browserWSEndpoint: `ws://chrome:${SUAPScraper.chromePort}`,
             });
+            
+            const page = await SUAPScraper.browser.newPage();
+            await page.setViewport({ width: 1920, height: 2000 });
+
+            console.log('Connected to Chrome.');
+
+            SUAPScraper.page = page;
+            SUAPScraper.connected = true;
+            return SUAPScraper;
         } catch (error) {
             console.error(`Could not connect to Chrome. Retries left: ${retries}`);
             if (retries <= 0) {
@@ -47,15 +85,6 @@ export default class SUAPScraper {
             await new Promise(resolve => setTimeout(resolve, 3000));
             return await SUAPScraper.connect(retries - 1);
         }
-
-        const page = await SUAPScraper.browser.newPage();
-        await page.setViewport({ width: 1920, height: 2000 });
-
-        console.log('Connected to Chrome.');
-
-        SUAPScraper.page = page;
-        SUAPScraper.connected = true;
-        return SUAPScraper;
     }
 
     /**
@@ -101,25 +130,33 @@ export default class SUAPScraper {
             SUAPScraper.logged = true;
             return SUAPScraper;
         } catch (error) {
-            // Analyze the failure: check if we are still on the login page or redirected to another error page
-            const currentUrl = SUAPScraper.page.url();
-            const isLoginPage = currentUrl.includes(suapConfig.login.url) || 
-                               (await SUAPScraper.page.$(suapConfig.login.username)) !== null;
+            // Safe page check: check if we are still on the login page
+            let isLoginPage = false;
+            try {
+                const currentUrl = SUAPScraper.page.url();
+                isLoginPage = currentUrl.includes(suapConfig.login.url) || 
+                                   (await SUAPScraper.page.$(suapConfig.login.username)) !== null;
+            } catch (e) {
+                console.warn('Could not determine if we are on the login page:', e.message);
+            }
             
             if (isLoginPage) {
-                let errorMessage = 'Authentication failed. Please verify your SUAP username and password.';
+                let errorMessage = null;
                 try {
-                    const errorMsg = await SUAPScraper.page.evaluate(() => {
+                    errorMessage = await SUAPScraper.page.evaluate(() => {
                         const el = document.querySelector('.errornote, .alert-danger, .msg.alert, .alert-error');
                         return el ? el.textContent.trim() : null;
                     });
-                    if (errorMsg) {
-                        errorMessage = `Authentication failed: ${errorMsg}`;
-                    }
                 } catch (e) {
                     console.error('Error fetching error message from login page:', e);
                 }
-                throw new CustomError('SUAP_AUTH_FAILED', errorMessage);
+
+                if (errorMessage) {
+                    throw new CustomError('SUAP_AUTH_FAILED', `Authentication failed: ${errorMessage}`);
+                }
+                
+                // If we are on the login page but there's no error message, it might be a transient loading issue.
+                throw new CustomError('SUAP_LOGIN_TIMEOUT', `Timeout waiting for SUAP login confirmation (still on login page without error message).`);
             } else {
                 throw new CustomError('SUAP_LOGIN_TIMEOUT', `Timeout waiting for SUAP login confirmation: ${error.message}`);
             }
@@ -173,20 +210,28 @@ export default class SUAPScraper {
                 return SUAPScraper;
             } catch (err) {
                 if (err.name === 'TimeoutError') {
-                    const currentUrl = SUAPScraper.page.url();
-                    const isLoginPage = currentUrl.includes(suapConfig.login.url) || 
-                                       (await SUAPScraper.page.$(suapConfig.login.username)) !== null;
+                    let isLoginPage = false;
+                    try {
+                        const currentUrl = SUAPScraper.page.url();
+                        isLoginPage = currentUrl.includes(suapConfig.login.url) || 
+                                           (await SUAPScraper.page.$(suapConfig.login.username)) !== null;
+                    } catch (e) {
+                        console.warn('Could not determine if redirected to login page:', e.message);
+                    }
+
                     if (isLoginPage) {
                         if (retryCount >= MAX_RETRIES) {
                             throw new CustomError(
-                                'SUAP_AUTH_FAILED',
-                                `Redirected to login page repeatedly when trying to access ${url}. Please check credentials.`
+                                'SUAP_NAVIGATION_FAILED',
+                                `Redirected to login page repeatedly when trying to access ${url}.`
                             );
                         }
                         console.log(`Timeout waiting for selector ${confirmElement} due to login page redirect, trying to login again...`);
                         SUAPScraper.logged = false;
                         return await SUAPScraper.goto(url, confirmElement, reply, retryCount + 1);
                     } else {
+                        let currentUrl = 'unknown';
+                        try { currentUrl = SUAPScraper.page.url(); } catch (e) {}
                         console.warn(`Timeout waiting for selector ${confirmElement}, but we are still logged in (URL: ${currentUrl}). Assuming element is not present.`);
                         return SUAPScraper;
                     }
