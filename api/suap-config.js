@@ -57,6 +57,11 @@ export default {
         rows: '#table_registro_aula tr',
         data: (tr) => Array.from(tr.querySelectorAll('th, td')).map(td => td.textContent.trim()),
     },
+    bookPage: {
+        // `edu/diario/${bookId}/`
+        url: 'edu/diario',
+        ready: '#content',
+    },
     programMapping: {
         INF: 'CH.INF_I - Curso Técnico em Informática - Integrado (CH 2008) (Campus Charqueadas)',
         MCT: 'CH.MCT_I - Curso Técnico em Mecatrônica - Integrado (CH 2007) (Campus Charqueadas)',

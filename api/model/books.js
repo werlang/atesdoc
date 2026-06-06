@@ -44,13 +44,63 @@ export default class Book {
         return lessons;
     }
 
+    /**
+     * Fetches individual lesson logs (Aulas) for each academic period of the book.
+     * Navigates first to the book's main page to detect how many classes are registered
+     * per period. If a period is empty, it skips navigating to the registration page,
+     * avoiding slow browser timeouts.
+     * 
+     * @param {Function} reply - Callback function to report status updates to the client.
+     * @returns {Promise<void>}
+     */
     async fetchLessons(reply) {
         await SUAPScraper.initialize();
 
-        // https://suap.ifsul.edu.br/edu/registrar_chamada/55325/1/
+        // 1. Visit the main diary page to check periods and lesson counts
+        const bookUrl = `${suapConfig.baseUrl}/${suapConfig.bookPage.url}/${this.id}/`;
+        console.log(`Checking book page for periods and registered lessons: ${bookUrl}`);
+        await SUAPScraper.goto(bookUrl, suapConfig.bookPage.ready, reply);
+
+        // 2. Extract existence and registered lesson count for periods 1 and 2
+        const periodsInfo = await SUAPScraper.evaluate(({ bookId }) => {
+            const info = {};
+            const links = Array.from(document.querySelectorAll('a'));
+            for (const period of [1, 2]) {
+                const regex = new RegExp('edu/registrar_chamada/' + bookId + '/' + period + '/?');
+                const link = links.find(a => regex.test(a.href));
+                if (link) {
+                    const text = link.textContent.trim();
+                    // Match pattern like "0 Aula(s)", "4 Aula(s)", "12 Aulas"
+                    const match = text.match(/(\d+)\s+Aula/i);
+                    info[period] = {
+                        exists: true,
+                        count: match ? parseInt(match[1]) : 1, // Fall back to 1 if parsing fails to avoid skipping
+                        text: text
+                    };
+                } else {
+                    info[period] = {
+                        exists: false,
+                        count: 0
+                    };
+                }
+            }
+            return info;
+        }, { bookId: this.id });
+
         const lessons = [];
 
+        // 3. Fetch lessons only for periods that have classes registered
         for (const period of [1, 2]) {
+            const info = periodsInfo[period];
+            if (!info || !info.exists) {
+                console.log(`Period ${period} does not exist for book ${this.id}. Skipping.`);
+                continue;
+            }
+            if (info.count === 0) {
+                console.log(`Period ${period} has 0 registered lessons for book ${this.id}. Skipping navigation.`);
+                continue;
+            }
+
             const url = `${suapConfig.baseUrl}/${suapConfig.bookDetails.url}/${this.id}/${period}`;
             console.log(`Fetching book details for book ${this.id} period ${period}: ${url}`);
             await SUAPScraper.goto(url, suapConfig.bookDetails.ready, reply);
@@ -71,15 +121,6 @@ export default class Book {
         this.lessons = lessons;
         this.report = this.generateReport(lessons);
         reply({ status: 'fetched', book: this });
-
-        // [
-        //     'EditarRemover',
-        //     '2',
-        //     '4 Hora(s)/Aula',
-        //     '26/08/2025',
-        //.    'Pablo Werlang',
-        //     'Aula inicial da disciplina'
-        // ],
 
         console.log(this.lessons);
     } 

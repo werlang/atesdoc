@@ -94,3 +94,5 @@ To package and launch the services:
 - **Scraper Hanger**: If Playwright hangs, ensure there's a timeout fallback on `waitForSelector` or `goto` commands. Check browser connection status, make sure the `chrome` container is responsive.
 - **Port Conflicts**: Ensure development Web server (port 3000) does not conflict with API port (8080) or Chrome connection port (3000). The default production web server is port 80.
 - **WebSocket Reconnection**: If connection to the WebSocket server is dropped, the client-side `WSClient` handles automatic re-connection. Toast notifications will notify the user.
+- **Environment File Access**: Do NOT open, view, read, or modify the `.env` file under any circumstances to preserve security and credential privacy.
+
