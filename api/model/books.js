@@ -157,10 +157,10 @@ export default class Book {
         }
         books = books.filter(book => book.link && book.semester).map(book => ({
             ...book,
-            book: book.book.split(' - ')[2]?.trim(),
-            class: (m => m ? `${m[2]}-${m[1]}${m[3]}` : '-')(book.class.match(/\d+\.(\d{1,2})\.CH\.([A-Z]{1,3}).*([A-Z])/)),
+            book: book.book?.split(' - ')[2]?.trim() || book.book || '',
+            class: (m => m ? `${m[2]}-${m[1]}${m[3]}` : '-')(book.class ? book.class.match(/\d+\.(\d{1,2})\.CH\.([A-Z]{1,3}).*([A-Z])/) : null),
         }));
-        books.forEach(book => book.program = suapConfig.programMapping[book.class.split('-')[0]]);
+        books.forEach(book => book.program = suapConfig.programMapping[book.class?.split('-')[0]] || '');
         books = books.filter((v, i, a) => a.findIndex(t => (t.link === v.link)) === i);
     
         console.log(books);

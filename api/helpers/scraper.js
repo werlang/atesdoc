@@ -76,11 +76,23 @@ export default class SUAPScraper {
                 return SUAPScraper;
             } catch (err) {
                 if (err.name === 'TimeoutError') {
-                    console.log(`Timeout waiting for selector ${confirmElement}, trying to login again...`);
-                    SUAPScraper.logged = false;
-                    return await SUAPScraper.goto(url, confirmElement, reply);
+                    const currentUrl = SUAPScraper.page.url();
+                    const isLoginPage = currentUrl.includes(suapConfig.login.url) || 
+                                       (await SUAPScraper.page.$(suapConfig.login.username)) !== null;
+                    if (isLoginPage) {
+                        console.log(`Timeout waiting for selector ${confirmElement} due to login page redirect, trying to login again...`);
+                        SUAPScraper.logged = false;
+                        return await SUAPScraper.goto(url, confirmElement, reply);
+                    } else {
+                        console.warn(`Timeout waiting for selector ${confirmElement}, but we are still logged in (URL: ${currentUrl}). Assuming element is not present.`);
+                        return SUAPScraper;
+                    }
                 } else {
-                    throw new CustomError(500, 'Error loading professor search results');
+                    console.error('Non-TimeoutError in waitForSelector, reconnecting and retrying:', err);
+                    SUAPScraper.connected = false;
+                    await SUAPScraper.connect();
+                    console.log('Reconnected to browser, trying to load page again...');
+                    return await SUAPScraper.goto(url, confirmElement, reply);
                 }
             }
         }
