@@ -14,7 +14,6 @@
   "license": "MIT",
   "dependencies": {
     "playwright-core": "^1.60.0",
-    "puppeteer-core": "^24.17.0",
     "ws": "^8.18.3"
   },
   "devDependencies": {

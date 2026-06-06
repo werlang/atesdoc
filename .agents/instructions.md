@@ -6,7 +6,7 @@ This document provides definitive guidelines, architecture overview, and specifi
 **Atestado de Docência (atesdoc)** is a dockerized two-service application that scrapes professor activity logs and class data from SUAP (Sistema Unificado de Administração Pública) for IFSUL (Instituto Federal Sul-rio-grandense), compiling it into formal teaching certificates.
 
 The user interface follows a modern 3-step wizard workflow:
-1. **Professor Search**: Finds a professor by name, CPF, or SIAPE using real-time Puppeteer SUAP admin scraping.
+1. **Professor Search**: Finds a professor by name, CPF, or SIAPE using real-time Playwright SUAP admin scraping.
 2. **Semester & Diary Selection**: Lists semesters and allows checking/unchecking academic books/diaries via a reactive table.
 3. **Document Generation**: Spawns concurrent scraper runs to fetch individual lesson logs (Aulas) and outputs a printable PDF.
 
@@ -39,14 +39,14 @@ The API runs on port 8080. It handles incoming requests via WebSocket.
 - **The Queue System**: Under the hood, `Route` registers handlers on `WSServer` and routes incoming payloads into a static [Queue](file:///Users/pablowerlang/Documents/Workspaces/ifsul/atesdoc/api/helpers/queue.js) instance. This prevents overloading the SUAP website.
 - **Client Response**: Responses are sent back to the client using a callback `reply(data)`. The route handler first responds with status `'in queue'` and position updates, followed by status `'processing'`, and finally the payload outcome.
 
-### 2. Puppeteer Scraper Pattern (`SUAPScraper`)
-All SUAP scraping actions are static methods in [api/helpers/scraper.js](file:///Users/pablowerlang/Documents/Workspaces/ifsul/atesdoc/api/helpers/scraper.js) using `puppeteer-core`.
-- **Chrome Remote Connection**: Scraper connects to the external `browserless/chrome` container over Docker network alias `chrome` on port `CHROME_PORT` (default 3000) using:
+### 2. Playwright Scraper Pattern (`PlaywrightScraper`)
+All SUAP scraping actions are static methods in [api/helpers/scraper.js](file:///Users/pablowerlang/Documents/Workspaces/ifsul/atesdoc/api/helpers/scraper.js) using `playwright-core`.
+- **Chrome Remote Connection**: Scraper connects to the external `browserless/chrome` container over Docker network alias `chrome` on port `CHROME_PORT` (default 3000) using Playwright's `connectOverCDP`:
   ```javascript
-  puppeteer.connect({ browserWSEndpoint: `ws://chrome:${port}` })
+  chromium.connectOverCDP(`ws://chrome:${port}`)
   ```
 - **Login Lifecycle**: The scraper tracks `logged` state. Navigations automatically check if `logged === false` and execute the login phase first. If redirect to the login page is detected during access, the scraper resets state and attempts to login again.
-- **Resource Recovery**: On completion or failure, sessions are detached. All methods should clean up references to prevent page leaks via `SUAPScraper.disconnect()`.
+- **Resource Recovery**: On completion or failure, sessions are detached. All methods should clean up references to prevent page leaks via `PlaywrightScraper.disconnect()`.
 - **Selector Selectors Configuration**: Keep all target URL endpoints, login forms, search criteria, and parsing methods separated in [api/suap-config.js](file:///Users/pablowerlang/Documents/Workspaces/ifsul/atesdoc/api/suap-config.js). Avoid hardcoding target selectors inside scrape methods.
 
 ### 3. Frontend Architecture
@@ -91,6 +91,6 @@ To package and launch the services:
 ---
 
 ## Common Gotchas & Troubleshooting
-- **Scraper Hanger**: If Puppeteer hangs, ensure there's a timeout fallback on `waitForSelector` or `goto` commands. Check browser connection status, make sure the `chrome` container is responsive.
+- **Scraper Hanger**: If Playwright hangs, ensure there's a timeout fallback on `waitForSelector` or `goto` commands. Check browser connection status, make sure the `chrome` container is responsive.
 - **Port Conflicts**: Ensure development Web server (port 3000) does not conflict with API port (8080) or Chrome connection port (3000). The default production web server is port 80.
 - **WebSocket Reconnection**: If connection to the WebSocket server is dropped, the client-side `WSClient` handles automatic re-connection. Toast notifications will notify the user.

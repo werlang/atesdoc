@@ -9,7 +9,7 @@
 **Microservices Architecture** with containerized deployment:
 
 - **`/web`** - Express.js frontend (port 80/3000) with vanilla JS, LESS, and Mustache templating
-- **`/api`** - Node.js WebSocket server (port 8080) with integrated Puppeteer scraping functionality and queue management
+- **`/api`** - Node.js WebSocket server (port 8080) with integrated Playwright scraping functionality and queue management
 - **`/compose.yaml`** - Docker Compose orchestration including external chrome container
 - **Chrome Container** - Browserless Chrome instance (port 9222) for headless browsing
 
@@ -159,7 +159,7 @@ closeStream = await wsserver.stream('get_books', {
 
 ## Technical Implementation Details
 
-### Integrated Puppeteer Scraping System
+### Integrated Playwright Scraping System
 - **Location**: Integrated into API service at `api/helpers/scraper.js`
 - **Chrome Connection**: Browserless container at `http://chrome:3000` (internal container communication)
 - **Authentication**: Automated SUAP login with credential management

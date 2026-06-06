@@ -44,7 +44,7 @@
 - **Microservices Architecture**: Separate web and API services with integrated scraping
 - **Queue Management**: Efficient task queuing system for handling multiple requests
 - **Containerized Deployment**: Docker support for easy setup and scaling
-- **Integrated Headless Browser**: Puppeteer-based scraping with Chrome integration built into API
+- **Integrated Headless Browser**: Playwright-based scraping with Chrome integration built into API
 - **WebSocket Communication**: Real-time updates and streaming responses
 - **State Management**: Centralized state with reactive UI updates
 
@@ -59,7 +59,7 @@ The application follows a microservices architecture with two main components:
 │   Port: 80      │    │   Port: 8080    │
 │                 │    │   WebSocket     │
 │                 │    │   + Integrated  │
-│                 │    │   Puppeteer     │
+│                 │    │   Playwright    │
 └─────────────────┘    └─────────────────┘
                               │
                               ▼
@@ -73,7 +73,7 @@ The application follows a microservices architecture with two main components:
 ### Components
 
 - **Web**: Frontend application with Webpack, LESS, and modern JavaScript ES6+ modules
-- **API**: RESTful API with WebSocket support, real-time communication, queue management, and integrated Puppeteer scraping
+- **API**: RESTful API with WebSocket support, real-time communication, queue management, and integrated Playwright scraping
 - **Chrome**: Browserless Chrome instance for headless browsing and PDF generation
 
 ## 🎨 User Interface
