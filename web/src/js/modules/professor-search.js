@@ -42,6 +42,7 @@ export default function(wsserver, state) {
                 if (message.error) {
                     if (toast) { toast.close(); }
                     toast = Toast.error(message.error);
+                    renderError(message.error);
                     resolve(message.error);
                     return;
                 }
@@ -56,6 +57,26 @@ export default function(wsserver, state) {
         });
         closeStream();
     });
+
+    function renderError(errorMessage) {
+        professorListContainer.classList.add('empty-state');
+        professorListContainer.innerHTML = `
+            <div class="list-header error-state">
+                <i class="fa-solid fa-circle-exclamation" style="font-size: 2.5rem; color: var(--color-error); margin-bottom: 12px;"></i>
+                <h2>Erro na Busca</h2>
+                <p>${errorMessage}</p>
+                <button type="button" class="retry-btn default" style="margin-top: 16px;">
+                    <i class="fa-solid fa-rotate-right"></i> Tentar Novamente
+                </button>
+            </div>
+        `;
+        
+        professorListContainer.querySelector('.retry-btn')?.addEventListener('click', () => {
+            professorListContainer.innerHTML = '';
+            professorListContainer.classList.remove('empty-state');
+            form.get().requestSubmit();
+        });
+    }
 
     function renderSkeletonList(count = 2) {
         professorListContainer.classList.remove('empty-state');

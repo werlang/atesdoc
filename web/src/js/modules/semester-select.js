@@ -192,6 +192,7 @@ export default function(wsserver, state) {
                 if (message.error) {
                     if (toast) { toast.close(); }
                     toast = Toast.error(message.error);
+                    renderError(message.error);
                     resolve(message.error);
                     return;
                 }
@@ -209,5 +210,34 @@ export default function(wsserver, state) {
             });
         });
         closeStream();
+    }
+
+    function renderError(errorMessage) {
+        const bookListContainer = document.querySelector('.book-list');
+        bookListContainer.classList.add('empty-state');
+        bookListContainer.innerHTML = `
+            <div class="list-header error-state">
+                <i class="fa-solid fa-circle-exclamation" style="font-size: 2.5rem; color: var(--color-error); margin-bottom: 12px;"></i>
+                <h2>Erro ao Buscar Diários</h2>
+                <p>${errorMessage}</p>
+                <div class="error-actions" style="margin-top: 16px; display: flex; gap: 12px; justify-content: center;">
+                    <button type="button" class="retry-btn default">
+                        <i class="fa-solid fa-rotate-right"></i> Tentar Novamente
+                    </button>
+                    <button type="button" class="back-btn">
+                        <i class="fa-solid fa-arrow-left"></i> Voltar
+                    </button>
+                </div>
+            </div>
+        `;
+
+        bookListContainer.querySelector('.retry-btn')?.addEventListener('click', () => {
+            renderSkeletonList();
+            getBooks();
+        });
+
+        bookListContainer.querySelector('.back-btn')?.addEventListener('click', () => {
+            state.update({ step: 2 });
+        });
     }
 }
