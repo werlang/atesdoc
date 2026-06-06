@@ -18,7 +18,11 @@ export default {
         rows: 'table#result_list tr',
         hasRows: 'td.field-get_dados_gerais dd',
         data: {
-            id: (tr) => parseInt(tr.querySelector('th a.icon-view')?.href.match(/\/edu\/professor\/(\d*)\//)[1]),
+            id: (tr) => {
+                const href = tr.querySelector('th a.icon-view')?.href;
+                const match = href?.match(/\/edu\/professor\/(\d+)\//);
+                return match ? parseInt(match[1]) : null;
+            },
             name: (tr) => tr.querySelectorAll('td.field-get_dados_gerais dd')?.[0]?.textContent.trim(),
             cpf: (tr) => tr.querySelectorAll('td.field-get_dados_gerais dd')?.[1]?.textContent.trim(),
             email: (tr) => tr.querySelectorAll('td.field-get_dados_gerais dd')?.[3]?.textContent.trim(),

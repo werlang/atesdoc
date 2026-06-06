@@ -1,14 +1,15 @@
-import puppeteer from 'puppeteer-core';
+import { chromium } from 'playwright-core';
 import suapConfig from '../suap-config.js';
 import CustomError from './error.js';
 
 /**
- * Static scraper class for interacting with the SUAP portal using Puppeteer.
+ * Static scraper class for interacting with the SUAP portal using Playwright.
  * Provides robust login, navigation, content evaluation, and PDF generation with automatic retry limits.
  */
-export default class SUAPScraper {
+export default class PlaywrightScraper {
     
     static browser = null;
+    static context = null;
     static page = null;
     static connected = false;
     static logged = false;
@@ -18,7 +19,7 @@ export default class SUAPScraper {
 
     // Private constructor to prevent instantiation
     constructor() {
-        throw new Error('SUAPScraper is a static class. Use static methods instead.');
+        throw new Error('PlaywrightScraper is a static class. Use static methods instead.');
     }
 
     /**
@@ -28,23 +29,31 @@ export default class SUAPScraper {
      */
     static async disconnect() {
         try {
-            if (SUAPScraper.page) {
-                await SUAPScraper.page.close().catch(() => {});
+            if (PlaywrightScraper.page) {
+                await PlaywrightScraper.page.close().catch(() => {});
             }
         } catch (e) {
             console.error('Error closing page during disconnect:', e);
         }
         try {
-            if (SUAPScraper.browser) {
-                await SUAPScraper.browser.disconnect().catch(() => {});
+            if (PlaywrightScraper.context) {
+                await PlaywrightScraper.context.close().catch(() => {});
             }
         } catch (e) {
-            console.error('Error disconnecting browser:', e);
+            console.error('Error closing context during disconnect:', e);
         }
-        SUAPScraper.page = null;
-        SUAPScraper.browser = null;
-        SUAPScraper.connected = false;
-        SUAPScraper.logged = false;
+        try {
+            if (PlaywrightScraper.browser) {
+                await PlaywrightScraper.browser.close().catch(() => {});
+            }
+        } catch (e) {
+            console.error('Error closing browser connection during disconnect:', e);
+        }
+        PlaywrightScraper.page = null;
+        PlaywrightScraper.context = null;
+        PlaywrightScraper.browser = null;
+        PlaywrightScraper.connected = false;
+        PlaywrightScraper.logged = false;
     }
 
     /**
@@ -52,29 +61,26 @@ export default class SUAPScraper {
      * Implements a maximum retry limit to prevent hanging if the Chrome container is down.
      * 
      * @param {number} [retries=5] - Number of connection retries remaining.
-     * @returns {Promise<typeof SUAPScraper>} Resolves with the SUAPScraper class.
+     * @returns {Promise<typeof PlaywrightScraper>} Resolves with the PlaywrightScraper class.
      * @throws {CustomError} Thrown if connection fails after all retries are exhausted.
      */
     static async connect(retries = 5) {
         // Disconnect from any stale sessions/tabs to prevent leaking resources in Chrome
-        await SUAPScraper.disconnect();
+        await PlaywrightScraper.disconnect();
 
-        // Remote debug: edge://inspect/#devices
         try {
-            SUAPScraper.browser = await puppeteer.connect({
-                browserWSEndpoint: `ws://chrome:${SUAPScraper.chromePort}`,
+            PlaywrightScraper.browser = await chromium.connectOverCDP(`ws://chrome:${PlaywrightScraper.chromePort}`);
+            PlaywrightScraper.context = await PlaywrightScraper.browser.newContext({
+                viewport: { width: 1920, height: 2000 }
             });
-            
-            const page = await SUAPScraper.browser.newPage();
-            await page.setViewport({ width: 1920, height: 2000 });
+            PlaywrightScraper.page = await PlaywrightScraper.context.newPage();
 
-            console.log('Connected to Chrome.');
+            console.log('Connected to Chrome via Playwright.');
 
-            SUAPScraper.page = page;
-            SUAPScraper.connected = true;
-            return SUAPScraper;
+            PlaywrightScraper.connected = true;
+            return PlaywrightScraper;
         } catch (error) {
-            console.error(`Could not connect to Chrome. Retries left: ${retries}`);
+            console.error(`Could not connect to Chrome via Playwright. Retries left: ${retries}`, error);
             if (retries <= 0) {
                 throw new CustomError(
                     'CHROME_CONNECTION_FAILED',
@@ -83,7 +89,7 @@ export default class SUAPScraper {
             }
             // Wait 3 seconds before retrying
             await new Promise(resolve => setTimeout(resolve, 3000));
-            return await SUAPScraper.connect(retries - 1);
+            return await PlaywrightScraper.connect(retries - 1);
         }
     }
 
@@ -91,21 +97,21 @@ export default class SUAPScraper {
      * Authenticates with SUAP using credentials from the environment.
      * Performs error analysis on failure (e.g., wrong credentials or timeout) to throw a clear message.
      * 
-     * @returns {Promise<typeof SUAPScraper>} Resolves with the SUAPScraper class.
+     * @returns {Promise<typeof PlaywrightScraper>} Resolves with the PlaywrightScraper class.
      * @throws {CustomError} Thrown if credentials are missing or login fails.
      */
     static async login() {
-        if (!SUAPScraper.username || !SUAPScraper.password) {
+        if (!PlaywrightScraper.username || !PlaywrightScraper.password) {
             throw new CustomError(
                 'SUAP_CONFIG_ERROR',
                 'SUAP credentials are not configured. Please set SUAP_USERNAME and SUAP_PASSWORD in the .env file.'
             );
         }
 
-        console.log(`Logging in as ${SUAPScraper.username}`);
+        console.log(`Logging in via Playwright as ${PlaywrightScraper.username}`);
         
         try {
-            await SUAPScraper.page.goto(`${suapConfig.baseUrl}/${suapConfig.login.url}`, {
+            await PlaywrightScraper.page.goto(`${suapConfig.baseUrl}/${suapConfig.login.url}`, {
                 waitUntil: 'load',
                 timeout: 20000
             });
@@ -114,9 +120,9 @@ export default class SUAPScraper {
         }
 
         try {
-            await SUAPScraper.page.$eval(suapConfig.login.username, (el, _username) => el.value = _username, SUAPScraper.username);
-            await SUAPScraper.page.$eval(suapConfig.login.password, (el, _password) => el.value = _password, SUAPScraper.password);
-            await SUAPScraper.page.click(suapConfig.login.submit);
+            await PlaywrightScraper.page.fill(suapConfig.login.username, PlaywrightScraper.username);
+            await PlaywrightScraper.page.fill(suapConfig.login.password, PlaywrightScraper.password);
+            await PlaywrightScraper.page.click(suapConfig.login.submit);
         } catch (error) {
             throw new CustomError(
                 'SUAP_LOGIN_FORM_FAILED',
@@ -125,17 +131,17 @@ export default class SUAPScraper {
         }
 
         try {
-            await SUAPScraper.page.waitForSelector(suapConfig.login.ready, { timeout: 8000 });
+            await PlaywrightScraper.page.waitForSelector(suapConfig.login.ready, { timeout: 8000 });
             console.log('Login successful');
-            SUAPScraper.logged = true;
-            return SUAPScraper;
+            PlaywrightScraper.logged = true;
+            return PlaywrightScraper;
         } catch (error) {
             // Safe page check: check if we are still on the login page
             let isLoginPage = false;
             try {
-                const currentUrl = SUAPScraper.page.url();
+                const currentUrl = PlaywrightScraper.page.url();
                 isLoginPage = currentUrl.includes(suapConfig.login.url) || 
-                                   (await SUAPScraper.page.$(suapConfig.login.username)) !== null;
+                                   (await PlaywrightScraper.page.$(suapConfig.login.username)) !== null;
             } catch (e) {
                 console.warn('Could not determine if we are on the login page:', e.message);
             }
@@ -143,7 +149,7 @@ export default class SUAPScraper {
             if (isLoginPage) {
                 let errorMessage = null;
                 try {
-                    errorMessage = await SUAPScraper.page.evaluate(() => {
+                    errorMessage = await PlaywrightScraper.page.evaluate(() => {
                         const el = document.querySelector('.errornote, .alert-danger, .msg.alert, .alert-error');
                         return el ? el.textContent.trim() : null;
                     });
@@ -155,7 +161,6 @@ export default class SUAPScraper {
                     throw new CustomError('SUAP_AUTH_FAILED', `Authentication failed: ${errorMessage}`);
                 }
                 
-                // If we are on the login page but there's no error message, it might be a transient loading issue.
                 throw new CustomError('SUAP_LOGIN_TIMEOUT', `Timeout waiting for SUAP login confirmation (still on login page without error message).`);
             } else {
                 throw new CustomError('SUAP_LOGIN_TIMEOUT', `Timeout waiting for SUAP login confirmation: ${error.message}`);
@@ -171,17 +176,17 @@ export default class SUAPScraper {
      * @param {string} [confirmElement] - CSS selector to wait for to confirm page loaded.
      * @param {Function} [reply] - Callback to report status back to the client.
      * @param {number} [retryCount=0] - Internal retry counter.
-     * @returns {Promise<typeof SUAPScraper>} Resolves with the SUAPScraper class.
+     * @returns {Promise<typeof PlaywrightScraper>} Resolves with the PlaywrightScraper class.
      * @throws {CustomError} Thrown if navigation or session recovery fails repeatedly.
      */
     static async goto(url, confirmElement, reply, retryCount = 0) {
         const MAX_RETRIES = 3;
         try {
-            if (!SUAPScraper.logged) {
+            if (!PlaywrightScraper.logged) {
                 if (reply) reply({ status: 'authenticating' });
-                await SUAPScraper.login();
+                await PlaywrightScraper.login();
             }
-            await SUAPScraper.page.goto(url, { waitUntil: 'load', timeout: 30000 });
+            await PlaywrightScraper.page.goto(url, { waitUntil: 'load', timeout: 30000 });
         } catch (err) {
             console.error(`Error in goto (retry ${retryCount}/${MAX_RETRIES}):`, err);
             
@@ -197,24 +202,24 @@ export default class SUAPScraper {
                 );
             }
 
-            SUAPScraper.connected = false;
-            SUAPScraper.logged = false;
-            await SUAPScraper.connect();
+            PlaywrightScraper.connected = false;
+            PlaywrightScraper.logged = false;
+            await PlaywrightScraper.connect();
             console.log('Reconnected to browser, trying to load page again...');
-            return await SUAPScraper.goto(url, confirmElement, reply, retryCount + 1);
+            return await PlaywrightScraper.goto(url, confirmElement, reply, retryCount + 1);
         }
 
         if (confirmElement) {
             try {
-                await SUAPScraper.page.waitForSelector(confirmElement, { timeout: 8000 });
-                return SUAPScraper;
+                await PlaywrightScraper.page.waitForSelector(confirmElement, { timeout: 8000 });
+                return PlaywrightScraper;
             } catch (err) {
-                if (err.name === 'TimeoutError') {
+                if (err.name === 'TimeoutError' || err.message?.includes('Timeout')) {
                     let isLoginPage = false;
                     try {
-                        const currentUrl = SUAPScraper.page.url();
+                        const currentUrl = PlaywrightScraper.page.url();
                         isLoginPage = currentUrl.includes(suapConfig.login.url) || 
-                                           (await SUAPScraper.page.$(suapConfig.login.username)) !== null;
+                                           (await PlaywrightScraper.page.$(suapConfig.login.username)) !== null;
                     } catch (e) {
                         console.warn('Could not determine if redirected to login page:', e.message);
                     }
@@ -227,13 +232,13 @@ export default class SUAPScraper {
                             );
                         }
                         console.log(`Timeout waiting for selector ${confirmElement} due to login page redirect, trying to login again...`);
-                        SUAPScraper.logged = false;
-                        return await SUAPScraper.goto(url, confirmElement, reply, retryCount + 1);
+                        PlaywrightScraper.logged = false;
+                        return await PlaywrightScraper.goto(url, confirmElement, reply, retryCount + 1);
                     } else {
                         let currentUrl = 'unknown';
-                        try { currentUrl = SUAPScraper.page.url(); } catch (e) {}
+                        try { currentUrl = PlaywrightScraper.page.url(); } catch (e) {}
                         console.warn(`Timeout waiting for selector ${confirmElement}, but we are still logged in (URL: ${currentUrl}). Assuming element is not present.`);
-                        return SUAPScraper;
+                        return PlaywrightScraper;
                     }
                 } else {
                     console.error(`Non-TimeoutError in waitForSelector (retry ${retryCount}/${MAX_RETRIES}):`, err);
@@ -243,14 +248,14 @@ export default class SUAPScraper {
                             `Failed to wait for selector ${confirmElement} on ${url}. Error: ${err.message}`
                         );
                     }
-                    SUAPScraper.connected = false;
-                    await SUAPScraper.connect();
+                    PlaywrightScraper.connected = false;
+                    await PlaywrightScraper.connect();
                     console.log('Reconnected to browser, trying to load page again...');
-                    return await SUAPScraper.goto(url, confirmElement, reply, retryCount + 1);
+                    return await PlaywrightScraper.goto(url, confirmElement, reply, retryCount + 1);
                 }
             }
         }
-        return SUAPScraper;
+        return PlaywrightScraper;
     }
 
     /**
@@ -264,6 +269,9 @@ export default class SUAPScraper {
     static async evaluate(fn, data) {
         // Serialize functions in data
         const serializeFunctions = (data) => {
+            if (typeof data !== 'object' || data === null) {
+                return data;
+            }
             for (const [key, value] of Object.entries(data)) {
                 if (typeof value === 'function') {
                     data[key] = `fn:${value.toString()}`;
@@ -284,9 +292,12 @@ export default class SUAPScraper {
         // serialize function argument
         serialized.fn = fn.toString();
 
-        return SUAPScraper.page.evaluate((data) => {
+        return PlaywrightScraper.page.evaluate((data) => {
             // in the browser, deserialize functions in data
             const deserializeFunctions = (data) => {
+                if (typeof data !== 'object' || data === null) {
+                    return data;
+                }
                 for (const [key, value] of Object.entries(data)) {
                     if (typeof value === 'string' && value.startsWith('fn:')) {
                         data[key] = eval(`(${value.slice(3)})`);
@@ -314,13 +325,13 @@ export default class SUAPScraper {
     /**
      * Initializes the scraper browser connection.
      * 
-     * @returns {Promise<typeof SUAPScraper>} Resolves with the SUAPScraper class.
+     * @returns {Promise<typeof PlaywrightScraper>} Resolves with the PlaywrightScraper class.
      */
     static async initialize() {
-        if (!SUAPScraper.connected) {
-            await SUAPScraper.connect();
+        if (!PlaywrightScraper.connected) {
+            await PlaywrightScraper.connect();
         }
-        return SUAPScraper;
+        return PlaywrightScraper;
     }
 
     /**
@@ -333,16 +344,16 @@ export default class SUAPScraper {
      */
     static async generatePDF(text, retryCount = 0) {
         const MAX_RETRIES = 3;
-        await SUAPScraper.initialize();
+        await PlaywrightScraper.initialize();
 
         try {
             // Set the HTML content
-            await SUAPScraper.page.setContent(text, {
-                waitUntil: 'networkidle0'
+            await PlaywrightScraper.page.setContent(text, {
+                waitUntil: 'networkidle'
             });
     
             // Generate PDF
-            const pdfBuffer = await SUAPScraper.page.pdf({
+            const pdfBuffer = await PlaywrightScraper.page.pdf({
                 format: 'A4',
                 printBackground: true,
                 margin: {
@@ -356,22 +367,22 @@ export default class SUAPScraper {
             // Convert Buffer to Base64
             const pdfBase64 = Buffer.from(pdfBuffer).toString('base64');
     
-            console.log(`PDF generated successfully - Size: ${pdfBuffer.length} bytes`);
+            console.log(`PDF generated successfully via Playwright - Size: ${pdfBuffer.length} bytes`);
     
             return pdfBase64;
         }
         catch (error) {
-            console.error(`Error in generatePDF (retry ${retryCount}/${MAX_RETRIES}):`, error);
+            console.error(`Error in generatePDF via Playwright (retry ${retryCount}/${MAX_RETRIES}):`, error);
             if (retryCount >= MAX_RETRIES) {
                 throw new CustomError(
                     'SUAP_PDF_GENERATION_FAILED',
                     `Failed to generate PDF after ${MAX_RETRIES} attempts. Error: ${error.message}`
                 );
             }
-            SUAPScraper.connected = false;
-            await SUAPScraper.connect();
+            PlaywrightScraper.connected = false;
+            await PlaywrightScraper.connect();
             console.log('Reconnected to browser, trying to generate PDF again...');
-            return await SUAPScraper.generatePDF(text, retryCount + 1);
+            return await PlaywrightScraper.generatePDF(text, retryCount + 1);
         }
     }
 }
