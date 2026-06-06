@@ -6,7 +6,7 @@
   "scripts": {
     "production": "node app.js",
     "development": "node --inspect=0.0.0.0 app.js --watch",
-    "test": "node --test"
+    "test": "NODE_ENV=test node --test"
   },
   "author": "Pablo Werlang",
   "license": "MIT",

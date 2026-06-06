@@ -26,7 +26,7 @@ export default class Semester {
             if (a.year !== b.year) {
                 return a.year - b.year;
             }
-            return a.semester - b.semester;
+            return a.period - b.period;
         });
         return list;
     }

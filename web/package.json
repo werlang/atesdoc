@@ -8,7 +8,7 @@
     "development": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "dev:server": "node --inspect=0.0.0.0 app.js --watch",
     "dev:client": "webpack serve",
-    "test": "node --test"
+    "test": "NODE_ENV=test node --test"
   },
   "author": "Pablo Werlang",
   "license": "MIT",

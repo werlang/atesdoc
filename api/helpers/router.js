@@ -4,7 +4,7 @@ import Queue from "./queue.js";
 export default class Route {
     
     static queue = new Queue();
-    static wss = new WSServer();
+    static wss = new WSServer({ port: process.env.NODE_ENV === 'test' ? 0 : 8080 });
 
     constructor(route, handler) {
         this.route = route;
