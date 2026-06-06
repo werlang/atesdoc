@@ -24,8 +24,8 @@ jobs:
           envs: REPO_PATH, WEB_CONTAINER_NAME
           script: |
             set -e
-            cd $REPO_PATH
-            echo "[Deploy] Starting deployment to path: $REPO_PATH"
+            cd ${{ vars.REPO_PATH }}
+            echo "[Deploy] Starting deployment to path: ${{ vars.REPO_PATH }}"
             echo "[Deploy] Fetching latest changes..."
             git fetch origin --prune
             git checkout main
@@ -35,7 +35,7 @@ jobs:
             docker compose up -d --build
             echo "[Deploy] Services restarted successfully."
             echo "[Deploy] Recompiling assets..."
-            docker exec $WEB_CONTAINER_NAME npx webpack
+            docker exec ${{ vars.WEB_CONTAINER_NAME }} npx webpack
       - name: Notify success
         if: success()
         run: echo "[Deploy] Deployment successful! Services restarted and assets recompiled."
