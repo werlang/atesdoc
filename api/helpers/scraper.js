@@ -112,7 +112,7 @@ export default class PlaywrightScraper {
         
         try {
             await PlaywrightScraper.page.goto(`${suapConfig.baseUrl}/${suapConfig.login.url}`, {
-                waitUntil: 'load',
+                waitUntil: 'domcontentloaded',
                 timeout: 20000
             });
         } catch (error) {
@@ -122,7 +122,9 @@ export default class PlaywrightScraper {
         try {
             await PlaywrightScraper.page.fill(suapConfig.login.username, PlaywrightScraper.username);
             await PlaywrightScraper.page.fill(suapConfig.login.password, PlaywrightScraper.password);
-            await PlaywrightScraper.page.click(suapConfig.login.submit);
+            // Opt out of waiting for post-click navigations in page.click itself, as we explicitly 
+            // wait for the ready selector next. This avoids 30s timeouts on slow networks/redirects.
+            await PlaywrightScraper.page.click(suapConfig.login.submit, { noWaitAfter: true });
         } catch (error) {
             throw new CustomError(
                 'SUAP_LOGIN_FORM_FAILED',
@@ -131,7 +133,7 @@ export default class PlaywrightScraper {
         }
 
         try {
-            await PlaywrightScraper.page.waitForSelector(suapConfig.login.ready, { timeout: 8000 });
+            await PlaywrightScraper.page.waitForSelector(suapConfig.login.ready, { timeout: 15000 });
             console.log('Login successful');
             PlaywrightScraper.logged = true;
             return PlaywrightScraper;
@@ -186,7 +188,7 @@ export default class PlaywrightScraper {
                 if (reply) reply({ status: 'authenticating' });
                 await PlaywrightScraper.login();
             }
-            await PlaywrightScraper.page.goto(url, { waitUntil: 'load', timeout: 30000 });
+            await PlaywrightScraper.page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
         } catch (err) {
             console.error(`Error in goto (retry ${retryCount}/${MAX_RETRIES}):`, err);
             
