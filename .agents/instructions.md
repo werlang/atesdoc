@@ -41,7 +41,7 @@ The API runs on port 8080. It handles incoming requests via WebSocket.
 
 ### 2. Playwright Scraper Pattern (`PlaywrightScraper`)
 All SUAP scraping actions are static methods in [api/helpers/scraper.js](file:///Users/pablowerlang/Documents/Workspaces/ifsul/atesdoc/api/helpers/scraper.js) using `playwright-core`.
-- **Chrome Remote Connection**: Scraper connects to the external `browserless/chrome` container over Docker network alias `chrome` on port `CHROME_PORT` (default 3000) using Playwright's `connectOverCDP`:
+- **Chrome Remote Connection**: Scraper connects to the external `ghcr.io/browserless/chromium` container over Docker network alias `chrome` on port `CHROME_PORT` (default 3000) using Playwright's `connectOverCDP`:
   ```javascript
   chromium.connectOverCDP(`ws://chrome:${port}`)
   ```
@@ -78,7 +78,7 @@ The frontend uses standard ES6 modules compiled with Webpack.
 ### Running in Development
 For active coding, hot reload is supported:
 1. Ensure the browserless chrome container is up:
-   `docker run -d -p 3000:3000 browserless/chrome:latest`
+   `docker run -d -p 3000:3000 ghcr.io/browserless/chromium:v2.57.3`
 2. Start the API server:
    `cd api && npm run development`
 3. Start the Webpack dev server and frontend Express server:
