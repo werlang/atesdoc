@@ -160,7 +160,7 @@ The application follows a microservices architecture with two main components:
 2. **Start services**
    ```bash
    # Terminal 1: Start Chrome (or use Docker)
-   docker run -d -p 3000:3000 browserless/chrome:latest
+   docker run -d -p 3000:3000 ghcr.io/browserless/chromium:v2.57.3
    
    # Terminal 2: Start API (includes scraper functionality)
    cd api && npm run development
